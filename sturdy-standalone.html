@@ -1,0 +1,1069 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Sturdy — Good Inside Family Companion</title>
+  <style>
+    :root {
+      --bg-canvas: hsl(38, 33%, 96%);
+      --bg-desktop: hsl(36, 26%, 92%);
+      --bg-surface: hsl(40, 50%, 99%);
+      --bg-subtle: hsl(36, 27%, 92%);
+      --bg-muted: hsl(35, 22%, 88%);
+      --ink-primary: hsl(163, 24%, 15%);
+      --ink-secondary: hsl(161, 12%, 37%);
+      --ink-muted: hsl(160, 9%, 52%);
+      --sage-700: hsl(163, 35%, 23%);
+      --sage-600: hsl(163, 33%, 28%);
+      --sage-500: hsl(162, 28%, 36%);
+      --sage-100: hsl(154, 26%, 93%);
+      --sage-50: hsl(154, 28%, 96%);
+      --terra-600: hsl(16, 54%, 46%);
+      --terra-500: hsl(16, 54%, 53%);
+      --terra-100: hsl(18, 60%, 95%);
+      --amber-700: hsl(35, 70%, 34%);
+      --amber-500: hsl(37, 68%, 48%);
+      --amber-100: hsl(41, 74%, 93%);
+      --border-hairline: hsl(34, 20%, 86%);
+      --border-strong: hsl(34, 18%, 77%);
+      --font-serif: 'Iowan Old Style', 'Palatino Linotype', 'Book Antiqua', Georgia, serif;
+      --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      --r-sm: 10px;
+      --r-md: 16px;
+      --r-lg: 22px;
+      --r-xl: 28px;
+      --r-full: 999px;
+      --shadow-xs: 0 1px 2px hsla(163, 24%, 15%, 0.04);
+      --shadow-sm: 0 3px 10px hsla(163, 24%, 15%, 0.05), 0 1px 2px hsla(163, 24%, 15%, 0.03);
+      --shadow-md: 0 10px 28px hsla(163, 24%, 15%, 0.09);
+      --app-max-w: 540px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      font-family: var(--font-sans);
+      background: var(--bg-desktop);
+      color: var(--ink-primary);
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      overscroll-behavior-y: none;
+    }
+    button, input, textarea, select { font-family: inherit; color: inherit; }
+    button { cursor: pointer; border: none; background: none; padding: 0; -webkit-tap-highlight-color: transparent; }
+    h1, h2, h3, h4, p { margin: 0; }
+
+    .viewport { min-height: 100dvh; display: flex; justify-content: center; background: var(--bg-desktop); }
+    .shell {
+      width: 100%; max-width: var(--app-max-w); min-height: 100dvh;
+      background: var(--bg-canvas); display: flex; flex-direction: column; position: relative;
+      box-shadow: 0 0 0 1px hsla(34, 20%, 82%, 0.7), 0 20px 60px hsla(163, 24%, 15%, 0.08);
+    }
+    @media (max-width: 560px) {
+      html, body, .viewport { background: var(--bg-canvas); }
+      .shell { box-shadow: none; }
+    }
+
+    /* Header */
+    .header {
+      position: sticky; top: 0; z-index: 30;
+      display: flex; align-items: center; justify-content: space-between; gap: 10px;
+      padding: calc(13px + env(safe-area-inset-top, 0px)) 18px 11px;
+      background: hsla(38, 33%, 96%, 0.94);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border-hairline);
+    }
+    .brand { display: flex; align-items: center; gap: 10px; }
+    .brand-title { font-family: var(--font-serif); font-size: 1.15rem; font-weight: 700; letter-spacing: -0.02em; line-height: 1.1; }
+    .brand-sub { font-size: 0.74rem; color: var(--ink-secondary); display: flex; align-items: center; gap: 5px; margin-top: 2px; }
+    .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--sage-500); display: inline-block; }
+    .dot.warn { background: var(--amber-500); }
+
+    .parent-pill {
+      display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px;
+      border-radius: var(--r-full); background: var(--bg-surface);
+      border: 1px solid var(--border-hairline); font-size: 0.8rem; font-weight: 600;
+      box-shadow: var(--shadow-xs);
+    }
+    .parent-avatar {
+      width: 20px; height: 20px; border-radius: 50%;
+      background: var(--sage-100); color: var(--sage-700);
+      display: inline-flex; align-items: center; justify-content: center;
+      font-size: 0.72rem; font-weight: 700;
+    }
+
+    /* Main */
+    .main { flex: 1; padding: 18px 18px 98px; display: flex; flex-direction: column; gap: 16px; }
+    .page-title { font-family: var(--font-serif); font-size: 1.5rem; font-weight: 600; letter-spacing: -0.02em; line-height: 1.2; }
+    .page-sub { font-size: 0.88rem; color: var(--ink-secondary); margin-top: 3px; }
+    .section-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    .kicker { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-muted); }
+
+    /* Bottom Nav */
+    .bnav {
+      position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+      width: 100%; max-width: var(--app-max-w); z-index: 35;
+      display: grid; grid-template-columns: repeat(4, 1fr);
+      padding: 8px 10px calc(10px + env(safe-area-inset-bottom, 0px));
+      background: hsla(40, 50%, 99%, 0.96); backdrop-filter: blur(14px);
+      border-top: 1px solid var(--border-hairline);
+    }
+    .nav-btn {
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
+      min-height: 50px; border-radius: var(--r-md); color: var(--ink-muted);
+      font-size: 0.72rem; font-weight: 600;
+    }
+    .nav-btn.active { color: var(--sage-700); background: var(--sage-50); }
+    .nav-btn.active.sos { color: var(--terra-600); background: var(--terra-100); }
+
+    /* Anchor Card */
+    .anchor {
+      background: var(--sage-600); color: hsl(40, 45%, 97%);
+      border-radius: var(--r-lg); padding: 14px 16px; box-shadow: var(--shadow-sm);
+    }
+    .anchor-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    .anchor-k { font-size: 0.69rem; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; opacity: 0.78; margin-bottom: 3px; }
+    .anchor-text { font-family: var(--font-serif); font-size: 1.03rem; line-height: 1.32; }
+    .anchor-btns { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+    .a-pill {
+      display: inline-flex; align-items: center; gap: 5px; padding: 7px 12px;
+      border-radius: var(--r-full); background: hsla(40, 45%, 97%, 0.16);
+      color: hsl(40, 45%, 98%); font-size: 0.78rem; font-weight: 600; min-height: 36px;
+    }
+    .a-icon {
+      width: 34px; height: 34px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;
+      background: hsla(40, 45%, 97%, 0.15); color: hsl(40, 45%, 98%);
+    }
+    .breathe-panel {
+      margin-top: 13px; padding-top: 13px; border-top: 1px solid hsla(40, 45%, 97%, 0.18);
+      display: flex; align-items: center; gap: 15px;
+    }
+    .orb-wrap { width: 70px; height: 70px; position: relative; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .orb-outer { position: absolute; inset: 0; border-radius: 50%; background: hsla(40, 45%, 97%, 0.15); transition: transform 3.8s ease-in-out; }
+    .orb-inner {
+      width: 42px; height: 42px; border-radius: 50%; background: hsl(18, 66%, 72%);
+      display: flex; align-items: center; justify-content: center; font-weight: 700;
+      font-size: 0.88rem; color: var(--ink-primary); z-index: 1; transition: transform 3.8s ease-in-out;
+    }
+    .orb-wrap.inhale .orb-outer { transform: scale(1.12); }
+    .orb-wrap.inhale .orb-inner { transform: scale(1.16); }
+    .orb-wrap.exhale .orb-outer { transform: scale(0.84); transition-duration: 5.8s; }
+    .orb-wrap.exhale .orb-inner { transform: scale(0.86); transition-duration: 5.8s; }
+
+    /* Modifier & Grid */
+    .modifier {
+      display: flex; align-items: center; justify-content: space-between; gap: 10px;
+      padding: 11px 14px; background: var(--bg-surface); border: 1px solid var(--border-hairline);
+      border-radius: var(--r-md); box-shadow: var(--shadow-xs); width: 100%; text-align: left;
+    }
+    .modifier.on { background: var(--amber-100); border-color: hsl(37, 56%, 74%); }
+    .switch { width: 44px; height: 26px; border-radius: var(--r-full); background: var(--bg-muted); position: relative; flex-shrink: 0; transition: background 0.16s; }
+    .switch.on { background: var(--amber-500); }
+    .thumb { width: 20px; height: 20px; border-radius: 50%; background: var(--bg-surface); position: absolute; top: 3px; left: 3px; transition: transform 0.16s; box-shadow: 0 1px 3px hsla(0,0%,0%,0.2); }
+    .switch.on .thumb { transform: translateX(18px); }
+
+    .tgrid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .tile {
+      text-align: left; padding: 13px 13px 12px; background: var(--bg-surface);
+      border: 1px solid var(--border-hairline); border-radius: var(--r-md);
+      box-shadow: var(--shadow-xs); display: flex; flex-direction: column; gap: 5px; min-height: 94px;
+    }
+    .tile.urgent { background: linear-gradient(180deg, hsl(40,55%,99%) 0%, hsl(22,48%,97%) 100%); }
+    .tile:active { transform: scale(0.985); }
+    .tile-title { font-family: var(--font-serif); font-size: 0.99rem; font-weight: 600; line-height: 1.2; color: var(--ink-primary); }
+    .tile-sub { font-size: 0.76rem; color: var(--ink-secondary); line-height: 1.36; }
+    .count-pill { font-size: 0.68rem; font-weight: 700; color: var(--sage-700); background: var(--sage-100); padding: 2px 7px; border-radius: var(--r-full); }
+
+    /* Cards & Strategy */
+    .card {
+      background: var(--bg-surface); border: 1px solid var(--border-hairline);
+      border-radius: var(--r-lg); padding: 16px; box-shadow: var(--shadow-sm);
+      display: flex; flex-direction: column; gap: 12px;
+    }
+    .reframe { background: var(--bg-subtle); border-radius: var(--r-md); padding: 13px 15px; display: flex; flex-direction: column; gap: 4px; }
+    .winner {
+      background: var(--sage-50); border: 1px solid hsl(154, 24%, 83%);
+      border-radius: var(--r-md); padding: 12px 14px;
+      display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    }
+    .tags { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+    .tag { font-size: 0.71rem; font-weight: 600; padding: 3px 8px; border-radius: var(--r-full); background: var(--bg-subtle); color: var(--ink-secondary); }
+    .tag.helped { background: var(--sage-100); color: var(--sage-700); }
+    .tag.warn { background: var(--terra-100); color: var(--terra-600); }
+    .tag.tired { background: var(--amber-100); color: var(--amber-700); }
+    .strat-title { font-family: var(--font-serif); font-size: 1.15rem; font-weight: 600; line-height: 1.24; }
+    .script-box { background: var(--bg-canvas); border-radius: var(--r-md); padding: 13px 14px; display: flex; flex-direction: column; gap: 9px; }
+    .script-quote { font-family: var(--font-serif); font-size: 1.1rem; line-height: 1.44; color: var(--ink-primary); }
+    .seg { display: inline-flex; background: var(--bg-subtle); padding: 3px; border-radius: var(--r-full); gap: 2px; }
+    .seg button { font-size: 0.72rem; font-weight: 600; padding: 4px 10px; border-radius: var(--r-full); color: var(--ink-secondary); }
+    .seg button.active { background: var(--bg-surface); color: var(--ink-primary); box-shadow: var(--shadow-xs); }
+    .detail-text { font-size: 0.87rem; color: var(--ink-secondary); line-height: 1.46; }
+    .avoid-ul { margin: 2px 0 0; padding-left: 16px; font-size: 0.84rem; color: var(--ink-secondary); display: flex; flex-direction: column; gap: 3px; }
+    .expand-btn { font-size: 0.82rem; font-weight: 600; color: var(--sage-700); align-self: flex-start; }
+
+    .outcome-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .out-btn {
+      min-height: 40px; border-radius: var(--r-sm); font-size: 0.8rem; font-weight: 600;
+      display: inline-flex; align-items: center; justify-content: center; gap: 5px;
+      border: 1px solid var(--border-hairline); background: var(--bg-surface);
+    }
+    .out-btn.helped:hover, .out-btn.helped.sel { background: var(--sage-100); border-color: var(--sage-500); color: var(--sage-700); }
+    .out-btn.somewhat:hover, .out-btn.somewhat.sel { background: var(--amber-100); border-color: var(--amber-500); color: var(--amber-700); }
+    .out-btn.escalated:hover, .out-btn.escalated.sel { background: var(--terra-100); border-color: var(--terra-500); color: var(--terra-600); }
+
+    /* Buttons & Inputs */
+    .btn-primary {
+      display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+      min-height: 46px; padding: 0 18px; border-radius: var(--r-md);
+      background: var(--sage-600); color: hsl(40, 45%, 98%); font-size: 0.92rem; font-weight: 600; width: 100%;
+    }
+    .btn-secondary {
+      display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+      min-height: 42px; padding: 0 14px; border-radius: var(--r-md);
+      background: var(--bg-surface); border: 1px solid var(--border-hairline);
+      font-size: 0.85rem; font-weight: 600; color: var(--ink-primary);
+    }
+    .back-btn {
+      display: inline-flex; align-items: center; gap: 5px; font-size: 0.84rem; font-weight: 600;
+      color: var(--sage-700); padding: 7px 12px; border-radius: var(--r-full); background: var(--sage-100);
+    }
+    .chip-scroll { display: flex; gap: 7px; overflow-x: auto; padding-bottom: 2px; scrollbar-width: none; }
+    .chip-scroll::-webkit-scrollbar { display: none; }
+    .chip {
+      padding: 7px 12px; border-radius: var(--r-full); background: var(--bg-surface);
+      border: 1px solid var(--border-hairline); font-size: 0.79rem; font-weight: 600;
+      color: var(--ink-secondary); white-space: nowrap; flex-shrink: 0;
+    }
+    .chip.active { background: var(--sage-600); border-color: var(--sage-600); color: hsl(40, 45%, 98%); }
+    .input, .select, .textarea {
+      width: 100%; padding: 10px 12px; border-radius: var(--r-sm);
+      border: 1px solid var(--border-hairline); background: var(--bg-surface); font-size: 16px; outline: none;
+    }
+    .textarea { min-height: 72px; resize: vertical; }
+    .field { display: flex; flex-direction: column; gap: 5px; }
+    .flabel { font-size: 0.78rem; font-weight: 600; color: var(--ink-secondary); }
+
+    /* Stats & Progress */
+    .stats-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px; }
+    .stat-box { background: var(--bg-surface); border: 1px solid var(--border-hairline); border-radius: var(--r-md); padding: 11px; }
+    .stat-num { font-family: var(--font-serif); font-size: 1.42rem; font-weight: 700; line-height: 1.15; }
+    .stat-lbl { font-size: 0.73rem; color: var(--ink-secondary); }
+    .track { height: 7px; border-radius: var(--r-full); background: var(--bg-subtle); overflow: hidden; display: flex; margin-top: 5px; }
+    .seg-h { background: var(--sage-500); }
+    .seg-s { background: var(--amber-500); }
+    .seg-e { background: var(--terra-500); }
+    .log-row { padding: 12px 0; border-bottom: 1px solid var(--border-hairline); display: flex; flex-direction: column; gap: 5px; }
+    .log-row:last-child { border-bottom: none; padding-bottom: 0; }
+
+    /* Sheet & PIN */
+    .backdrop {
+      position: fixed; inset: 0; z-index: 60; background: hsla(163, 24%, 12%, 0.44);
+      display: flex; align-items: flex-end; justify-content: center;
+    }
+    .sheet {
+      width: 100%; max-width: var(--app-max-w); max-height: 90dvh; overflow-y: auto;
+      background: var(--bg-canvas); border-radius: var(--r-xl) var(--r-xl) 0 0;
+      padding: 16px 20px calc(26px + env(safe-area-inset-bottom, 0px)); display: flex; flex-direction: column; gap: 14px;
+      box-shadow: 0 -8px 34px hsla(163, 24%, 15%, 0.16);
+    }
+    .handle { width: 38px; height: 4px; border-radius: var(--r-full); background: var(--border-strong); margin: 0 auto; }
+    .pin-wrap { min-height: 100dvh; width: 100%; max-width: var(--app-max-w); background: var(--bg-canvas); padding: calc(30px + env(safe-area-inset-top, 0px)) 24px calc(28px + env(safe-area-inset-bottom, 0px)); display: flex; flex-direction: column; align-items: center; justify-content: space-between; gap: 22px; }
+    .pin-dots { display: flex; justify-content: center; gap: 14px; margin: 8px 0; }
+    .pin-dot { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--sage-500); }
+    .pin-dot.filled { background: var(--sage-600); }
+    .pin-dot.err { background: var(--terra-500); border-color: var(--terra-500); }
+    .keypad { display: grid; grid-template-columns: repeat(3, 74px); gap: 11px; }
+    .key { height: 58px; border-radius: var(--r-md); background: var(--bg-surface); border: 1px solid var(--border-hairline); font-family: var(--font-serif); font-size: 1.35rem; font-weight: 600; box-shadow: var(--shadow-xs); }
+    .key.muted { background: transparent; border: none; box-shadow: none; font-family: var(--font-sans); font-size: 0.85rem; color: var(--ink-secondary); }
+    .toast {
+      position: fixed; top: 68px; left: 50%; transform: translateX(-50%); z-index: 80;
+      background: var(--ink-primary); color: hsl(40, 45%, 98%); padding: 9px 16px;
+      border-radius: var(--r-full); font-size: 0.82rem; font-weight: 600; box-shadow: var(--shadow-md);
+    }
+    .empty { text-align: center; padding: 26px 16px; background: var(--bg-surface); border: 1px dashed var(--border-strong); border-radius: var(--r-lg); display: flex; flex-direction: column; align-items: center; gap: 10px; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script>
+  (() => {
+    const LOGO_SVG = `<svg width="34" height="34" viewBox="0 0 192 192" fill="none" style="border-radius:10px;flex-shrink:0"><rect width="192" height="192" rx="44" fill="#2F5D50"/><path d="M46 138V92C46 64.3858 68.3858 42 96 42C123.614 42 146 64.3858 146 92V138" stroke="#FAF7F2" stroke-width="14" stroke-linecap="round"/><circle cx="96" cy="96" r="20" fill="#E08E6D"/><path d="M62 146H130" stroke="#FAF7F2" stroke-width="10" stroke-linecap="round" opacity="0.85"/></svg>`;
+
+    const TRIGGERS = [
+      { id:'flooded', label:"Flooded / Can't Hear Us", short:'Flooded', sub:'Crying hard, screaming, zero-to-60 — logic won’t land', reframe:'His nervous system is flooded with cortisol and his thinking brain is temporarily offline. Connection and calm presence come first; words and lessons come later.', low:true, urgent:true },
+      { id:'boundaries', label:'Testing Boundaries', short:'Boundaries', sub:'Pushing limits, saying "No!", ignoring requests', reframe:'Boundary testing at 4 is not defiance—it is your child checking: "Are you sturdy enough to hold the wall when I feel big and wild?"', low:false, urgent:true },
+      { id:'physical', label:'Angry / Physical Urges', short:'Physical', sub:'Hitting, kicking, throwing, slamming doors', reframe:'Aggression is a fear-and-cortisol surge, not a bad kid. Stopping his body calmly protects him from shame and teaches him you will keep everyone safe.', low:true, urgent:true },
+      { id:'dfk', label:'Escalates When We Talk', short:'Talk Backfires', sub:'Validating or reasoning makes him angrier ("Deeply Feeling" mode)', reframe:'Some deeply feeling 4-year-olds feel exposed and shamed when feelings are narrated mid-storm. Drop the words and become a quiet, steady anchor.', low:true, urgent:true },
+      { id:'overtired', label:'Overtired Crash', short:'Overtired', sub:'End-of-day collapse, tiny trigger → massive explosion', reframe:'An overtired 4-year-old has zero emotional buffer left. Drop non-essential demands, lend him your calm nervous system, and get through the evening safely.', low:true, urgent:false },
+      { id:'transitions', label:'Transition Meltdown', short:'Transitions', sub:'Ending screens, leaving the park, bedtime, clothes', reframe:'Switching gears requires executive function 4-year-olds are still building. Joining his world briefly—then holding the boundary—reduces the shock.', low:false, urgent:false },
+      { id:'frustrated', label:'Frustrated / Stuck', short:'Frustrated', sub:'"I can’t do it!", perfectionism, plan changed', reframe:'He is in the "learning space," where not knowing yet feels scary. Stay beside him in the frustration without rushing to fix or dismiss it.', low:false, urgent:false },
+      { id:'sharing', label:'Sharing / Waiting', short:'Sharing', sub:'Sibling conflict, taking turns, fairness battles', reframe:'At 4, impulse control is tiny and desires feel urgent. Sportscast what you see neutrally, hold safety, and protect turns rather than forcing fake generosity.', low:false, urgent:false },
+    ];
+
+    const MANTRAS = [
+      { text:'{child} is a good kid having a hard time.', sub:'Separate the child (good inside) from the behavior (struggling right now).' },
+      { text:'I am the pilot in turbulence. Calm voice, steady hands.', sub:'He doesn’t need me to stop the storm—he needs to see I’m not afraid of it.' },
+      { text:'My job is to hold the boundary. His job is to have his feelings.', sub:'Two things are true: the limit stays, and he is allowed to hate it.' },
+      { text:'This is not an emergency. Fewer words, slower breath.', sub:'When he can’t hear me, my calm body says more than ten sentences ever could.' },
+      { text:'Connection before correction. Repair is always available later.', sub:'We don’t have to teach the lesson while his brain is flooded.' },
+    ];
+
+    const CONTEXT_TAGS = ['Before dinner','Bedtime','Morning rush','After preschool','Screen off','In public','Hungry','Car / stroller'];
+
+    const STRATEGIES = [
+      { id:'calm-body-fewest-words', title:'Calm Body, Fewest Words', principle:'Co-Regulation', triggers:['flooded','overtired','dfk'], tiredOk:true, low:true, mgi:'When {child} is crying or screaming so hard he can’t hear us, extra words feel like loud static to an overloaded brain.', sf:'“{child}, you’re safe. I’m right here.”', ss:'“I’m right here, {child}. You’re safe. You don’t have to say anything—I’m staying close until your body feels calmer.”', body:'Drop below eye level, unclench your jaw, exhale audibly, and sit within arm’s reach. Say one short phrase, then pause in silence for 20–30 seconds.', avoid:['Explaining why the rule makes sense mid-scream','Asking "Why are you crying?" or "Use your words!"','Raising your volume to talk over him'] },
+      { id:'silent-sturdy-anchor', title:'Silent Sturdy Anchor (Zero-Talk Mode)', principle:'Deeply Feeling Kid', triggers:['dfk','flooded','overtired'], tiredOk:true, low:true, mgi:'For deeply feeling kids, hearing "I see you’re mad!" can trigger instant shame. Silent proximity feels safer than narration.', sf:'(No words—just calm breathing and steady presence 3–5 feet away.)', ss:'(Stay quiet. If he yells "Go away!", say softly once:) “I’m giving you space right over here by the door. I love you.”', body:'Turn your body slightly sideways (less confrontational), sit on the floor, relax your hands, and breathe slowly without demanding eye contact.', avoid:['Narrating his feelings out loud when talking ramps him up','Hovering inches from his face or forcing hugs','Walking out in anger ("Fine, be alone then!")'] },
+      { id:'validate-magnitude', title:'Validate the Magnitude', principle:'Remove Aloneness', triggers:['flooded','transitions','frustrated'], tiredOk:false, low:false, mgi:'Feelings aren’t as overwhelming as feeling alone inside them. Matching the size of his feeling shows him you truly get it.', sf:'“So big, {child}. Huge mad. I see you.”', ss:'“You are SO mad right now—as mad as this whole room, no, this whole house! I’m glad I know how huge this feels. I’m staying right here with you.”', body:'Match his intensity slightly with sincere warmth, then let your voice gently soften downward so his nervous system can follow.', avoid:['Minimizing ("It’s just a cup, it’s not a big deal")','Jumping straight to solutions before he feels heard'] },
+      { id:'small-safe-space', title:'Small Safe Space ("Time-In")', principle:'Sturdy Presence', triggers:['flooded','physical','overtired'], tiredOk:true, low:true, mgi:'Big rooms or public audiences overload a flooded 4-year-old. Moving together to a quiet space removes stimulation—not love.', sf:'“Too loud out here. Coming with you to your room. I’m staying.”', ss:'“Your body feels really out of control right now, {child}. I’m going to carry you to a quiet room and sit right next to you until the big feeling passes.”', body:'Calmly carry or guide him to a smaller, quieter room (or the car). Sit on the floor near the door—calm, warm, unhurried—and wait out the wave.', avoid:['Closing him in a room alone (time-out fuels panic and shame)','Threatening "Go to your room until you act nicely!"'] },
+      { id:'pilot-in-turbulence', title:'Ride the Wave (Pilot in Turbulence)', principle:'Sturdy Leadership', triggers:['flooded','boundaries','transitions'], tiredOk:true, low:true, mgi:'A cortisol meltdown wave naturally peaks and drops in minutes if we don’t add fuel by fighting, lecturing, or caving.', sf:'“Big wave, {child}. I’ve got us. I’m right here.”', ss:'“This feels awful right now, {child}, and I’m not scared of your big feelings. We’re going to ride this wave together until your body slows down.”', body:'Plant both feet on the floor. Picture yourself as a calm airline pilot announcing turbulence. Keep your face soft rather than tense or pleading.', avoid:['Negotiating or changing your boundary just to stop crying','Looking panicked or begging him to stop'] },
+      { id:'micro-whisper-goodness', title:'4-Word Goodness Anchor', principle:'Deeply Feeling Kid', triggers:['dfk','physical','flooded'], tiredOk:true, low:true, mgi:'Underneath explosive anger, a 4-year-old often secretly feels "I’m bad." A tiny anchor reminds him he is loved without demanding a reply.', sf:'“Good kid. Hard moment.”', ss:'“{child}, you’re a good kid having a really hard moment. I’m not going anywhere.”', body:'Say it once in a low, grounded tone—like dropping an anchor—and then stop talking.', avoid:['Adding "but..." right after','Repeating it five times in a row'] },
+      { id:'sensory-reset-no-demands', title:'Silent Sensory Offer (No Questions)', principle:'Deeply Feeling Kid', triggers:['dfk','overtired','flooded'], tiredOk:true, low:true, mgi:'A flooded brain can’t answer rapid-fire questions. Quietly placing a regulating sensory cue nearby lets him choose on his own terms.', sf:'“Water’s right here if your body wants it.”', ss:'“I’m putting your cold water cup and cozy blanket right here next to you, {child}. No rush—I’m just sitting here.”', body:'Dim harsh lights, quietly place cold water, a favorite lovey, or a heavy blanket within reach, then sit calmly nearby.', avoid:['Rapid-fire questions ("Water? Blanket? Hug? Music?")','Insisting he take a deep breath mid-rage'] },
+      { id:'true-boundary-what-i-will-do', title:'True Boundary ("What I Will Do")', principle:'Sturdy Leadership', triggers:['boundaries','transitions','physical'], tiredOk:true, low:true, mgi:'A real boundary tells {child} what YOU will do—and requires him to do nothing. Stepping in calmly is doing our job, not punishing.', sf:'“Too hard to stop. I’m picking you up safely.”', ss:'“{child}, it looks too hard for your body to get off the table right now. I’m going to pick you up and put your feet safely on the floor.”', body:'Move closer BEFORE speaking so you aren’t shouting across the room. State the boundary once calmly, then follow through with your body.', avoid:['Repeating the same request 5 times louder','Counting "1... 2... 2 and a half..."','Empty threats ("No dessert forever!")'] },
+      { id:'two-things-are-true', title:'Two Things Are True', principle:'Two Things Are True', triggers:['boundaries','transitions','sharing'], tiredOk:false, low:false, mgi:'We don’t have to choose between holding a firm limit and honoring his feelings. Both realities exist at the exact same time.', sf:'“TV is off, and you’re mad. Both are okay.”', ss:'“Two things are true, {child}: screen time is all done for today, and you’re allowed to be really upset about it. It’s so hard to stop fun things.”', body:'Hold the boundary physically (turn off TV / put item away calmly) while keeping your face warm and unbothered by his protest.', avoid:['Convincing him he shouldn’t be upset','Saying "Okay, 5 more minutes" after calling time'] },
+      { id:'step-out-of-power-struggle', title:'Step Out of the Power Struggle', principle:'End Power Struggles', triggers:['boundaries','transitions'], tiredOk:true, low:false, mgi:'When a 4-year-old digs in and we dig in harder, his brain treats it as a threat. Dropping the rope while keeping the limit breaks the tug-of-war.', sf:'“Not fighting you. Pajamas go on next—I’m here to help.”', ss:'“{child}, I don’t want to fight with you—we’re on the same team. Shoes are happening, and I know you hate stopping play. Want to do it yourself or have helper hands?”', body:'Drop your shoulders, take one step closer instead of leaning over him, and switch from "me vs. you" to a calm team-leader tone.', avoid:['Matching his defiant energy ("Because I said so!")','Lecturing a 4-year-old about respect'] },
+      { id:'two-choice-agency', title:'Two Approved Choices Inside the Limit', principle:'Healthy Agency', triggers:['boundaries','transitions','overtired'], tiredOk:false, low:false, mgi:'4-year-olds crave autonomy. Giving a real choice inside a non-negotiable boundary fills his need for power without giving up leadership.', sf:'“Bath time. Walk like a bear, or Mom carries you?”', ss:'“It’s time to get in the car, {child}. Do you want to climb in like a superhero yourself, or do you want me to fly you in like an airplane?”', body:'Make sure BOTH choices are ones you happily accept. If he refuses both, calmly say "I’ll help your body this time" and follow through kindly.', avoid:['Disguising a threat as a choice ("Coat on or no park!")','Offering 5+ open-ended options when tired'] },
+      { id:'name-the-wish', title:'Name the Wish ("Magic Wand")', principle:'Validation & Connection', triggers:['boundaries','transitions','sharing'], tiredOk:false, low:false, mgi:'Saying his unspoken wish out loud proves you understand his heart—even when the answer stays a firm no.', sf:'“You wish you could stay forever. I know. Time to go.”', ss:'“You wish you could play at the park until the moon comes up! I wish we had a magic wand for extra playtime too, {child}. And right now it’s time to head home.”', body:'Use warm, imaginative empathy for 5 seconds, then pivot cleanly with "And..." (not "But...").', avoid:['Using "but" ("I know you want to stay, BUT...")','Arguing with his wish'] },
+      { id:'safety-boundary-wont-let-you', title:'Safety Boundary ("I Won’t Let You…")', principle:'Safety Boundary', triggers:['physical','boundaries','flooded'], tiredOk:true, low:true, mgi:'When cortisol hijacks his arms and legs, he is scared of his own loss of control. Blocking the hit firmly and calmly makes him feel safe.', sf:'“I won’t let you hit. Keeping us safe.”', ss:'“I won’t let you hit or throw toys, {child}. I’m holding your hands gently to keep everyone safe. You can be super mad, and I will keep bodies safe.”', body:'Step in quickly and neutrally—block the hit, gently hold wrists if needed, or move throwable items away without anger.', avoid:['Yelling "NO HITTING! Bad boy!"','Guilt-tripping ("You hurt Mommy’s feelings!")'] },
+      { id:'redirect-body-urge', title:'Safe Target for Big Body Energy', principle:'Work With the Urge', triggers:['physical','flooded','frustrated'], tiredOk:false, low:true, mgi:'Anger is physical energy looking for an exit. Giving his hands and feet a safe job channels the urge without shaming the emotion.', sf:'“Hands can’t hit me. Push my hands HARD—go!”', ss:'“Your body has HUGE mad energy right now, {child}! I won’t let you kick people—you can stomp as hard as you can on this pillow or push against my hands!”', body:'Hold up your flat palms for him to push against (heavy proprioceptive input calms the nervous system fast), or toss a cushion on the floor.', avoid:['Telling him to "sit still and calm down" while vibrating with adrenaline'] },
+      { id:'protect-your-body-no-guilt', title:'Step Back Without Guilt-Tripping', principle:'Sturdy Leadership', triggers:['physical','dfk'], tiredOk:true, low:true, mgi:'Protecting yourself calmly teaches healthy boundaries without making a 4-year-old feel responsible for an adult’s emotions.', sf:'“I’m stepping back to keep my body safe. Still right here.”', ss:'“I know you’re really upset, {child}. I can’t stay close while you’re kicking at me, so I’m moving two steps back to keep my body safe—and I’m staying right here in the room.”', body:'Move just out of kicking range while keeping your posture relaxed and staying in the same room.', avoid:['Saying "When you hit me, it makes Daddy so sad"','Storming out and slamming the door'] },
+      { id:'drop-demands-coregulate', title:'Drop Non-Essential Demands', principle:'Overtired Triage', triggers:['overtired','flooded','transitions'], tiredOk:true, low:true, mgi:'When his tank is at 0%, normal 4-year-old skills vanish. Doing the task WITH or FOR him isn’t spoiling—it’s triage.', sf:'“Tired body tonight. I’ll carry you and do the PJs.”', ss:'“Your body worked so hard all day, {child}, and your battery is empty. You don’t have to do this by yourself tonight—I’m going to help you with pajamas and carry you up.”', body:'Lower lights, whisper warmly, skip toy-cleanup tonight, and physically assist through bedtime basics.', avoid:['Insisting on independence ("You’re 4! You put your socks on this morning!")','Turning an overtired evening into a discipline lesson'] },
+      { id:'playful-bridge', title:'Playful Bridge (Before Full Meltdown)', principle:'Connection Capital', triggers:['overtired','transitions','boundaries'], tiredOk:true, low:false, mgi:'Playfulness speaks a 4-year-old’s native language and shifts his brain from fight-or-flight into connection before a meltdown locks in.', sf:'“Wait… do pajama pants go on your HEAD?!”', ss:'“Uh oh, {child}’s toothbrush says it’s hungry for dinosaur teeth! Wait—are there tiny blueberries hiding in the back? Let me check!”', body:'Use light silliness ONLY during early friction—if he’s already full-blown crying/flooded, switch to Calm Body, Fewest Words.', avoid:['Forcing silliness once he’s already furious'] },
+      { id:'soft-landing-rhythm', title:'The Soft Landing (Hold, Sway, Hum)', principle:'Co-Regulation', triggers:['overtired','flooded'], tiredOk:true, low:true, mgi:'Sometimes an overtired 4-year-old just needs to release a whole day of holding it together in a safe pair of arms.', sf:'“Big day, sweetie. Let it all out. I’ve got you.”', ss:'“It was such a big day, {child}. You can cry right here in my lap—I’ve got you safe and warm.”', body:'Sit in a dim room, offer open arms (don’t force), sway slowly, hum a steady rhythm, and breathe slowly.', avoid:['Shushing impatiently or saying "Stop crying, it’s bedtime"'] },
+      { id:'join-before-leading', title:'Join His World Before Leading Out', principle:'Connection Before Direction', triggers:['transitions','boundaries'], tiredOk:false, low:false, mgi:'Abruptly pulling a 4-year-old out of deep play feels like yanking a book out of our hands mid-chapter. 30 seconds of joining makes leaving smoother.', sf:'“Cool tower! Taking a photo to save it. Now dinner.”', ss:'“Whoa, {child}, look how long that train track is! Where is the red train heading? Let’s park it right at the station so it’s safe while we eat dinner.”', body:'Get on the floor beside him for 30 seconds, show genuine curiosity, create a "pause point," then transition calmly.', avoid:['Calling "Time to go!" from another room three times','Snatching the toy without warning'] },
+      { id:'jump-into-the-hole', title:'Jump Into the Hole With Him', principle:'The Learning Space', triggers:['frustrated','flooded'], tiredOk:false, low:false, mgi:'When a 4-year-old yells "I CAN’T DO IT!", he feels alone in the hard "not-yet" space. Sitting beside him builds real resilience.', sf:'“Ugh, so frustrating! That piece is tricky. I’m right here.”', ss:'“Ugh, that is SO frustrating, {child}! You tried and it still popped apart—no wonder your body wants to throw it. Learning something new feels yucky at first. I’m right here.”', body:'Sit next to him, resist grabbing the toy to fix it, and wait until his shoulders drop before offering a tiny team-up.', avoid:['Jumping in with "It’s easy! Watch!"','Saying "Don’t cry, you’re fine!"'] },
+      { id:'team-up-micro-step', title:'Team-Up Micro-Step', principle:'Build Confidence', triggers:['frustrated','overtired'], tiredOk:true, low:false, mgi:'Splitting a hard task into a tiny shared step restores momentum without stealing his feeling of capability.', sf:'“Let’s be a team. I hold the bottom, you pull up.”', ss:'“You don’t have to do the whole thing alone, {child}. Want me to start the zipper at the bottom and you zoom it all the way up?”', body:'Handle the hardest 10% and let him finish the satisfying part.', avoid:['Taking over the entire task out of impatience'] },
+      { id:'sportscast-protect-turns', title:'Neutral Sportscast + Protect Turns', principle:'Sturdy Leadership', triggers:['sharing','physical','boundaries'], tiredOk:false, low:false, mgi:'Waiting for a coveted toy is agony at 4. Being a neutral narrator—not a courtroom judge—calms the scramble.', sf:'“Both want the truck. No grabbing. {child}, you’re next.”', ss:'“Two kids really want the red truck right now! I won’t let anyone grab. It’s still his turn, and {child}, you really wish you had it right now. Want to hold my hand while we wait?”', body:'Place a calm hand between kids if grabbing starts and keep your voice neutral.', avoid:['Forcing a child to hand over a toy mid-play','Interrogating "Who had it first?!"'] },
+      { id:'after-storm-repair', title:'After-the-Storm Story & Repair', principle:'Repair (When Calm)', triggers:['flooded','boundaries','physical','dfk'], tiredOk:false, low:false, mgi:'Use ONLY later when everyone is calm. Naming what happened integrates the memory—and repairing if WE yelled builds deep trust.', sf:'“Earlier was so hard. We got through it. I love you.”', ss:'“Remember earlier when {child} got super mad? Your body felt so big and loud, and I stayed right with you until you calmed down. (If we yelled:) I’m sorry I yelled—I’m working on staying calm. You’re always a good kid.”', body:'Bring it up casually during bath or bedtime—warm, brief, zero lectures.', avoid:['Saying "I’m sorry I yelled, BUT you pushed my buttons"'] },
+    ];
+
+    const PILLARS = [
+      ['Good Inside (MGI)', 'Separate who he is (good inside) from his behavior (a 4-year-old struggling with big urges). Ask: What is my Most Generous Interpretation right now?'],
+      ['Sturdy Leadership', 'Neither harsh nor permissive. You are the calm pilot in turbulence: warm empathy for feelings + firm follow-through on limits.'],
+      ['Two Things Are True', 'You can hold a boundary AND allow him to hate it at the same time. Your job: hold the wall. His job: have his feelings.'],
+      ['True Boundaries', 'A boundary states what YOU will do and requires your child to do nothing. Move closer, speak once, follow through calmly.'],
+      ['Flooded = Fewer Words', 'When he is screaming so hard he can’t hear you (or overtired), logic backfires. Drop words, lower your body, lend calm.'],
+      ['Repair Beats Perfection', 'You will lose your cool sometimes—you are good inside too. Coming back later to own your reaction without blame builds huge trust.'],
+    ];
+
+    // Safe localStorage wrapper (works on phones/browsers, falls back to memory in strict iframes)
+    let storageAvailable = true;
+    const memStore = {};
+    function readStore(key) {
+      try { return window.localStorage.getItem(key); } catch { storageAvailable = false; return memStore[key] || null; }
+    }
+    function writeStore(key, val) {
+      try { window.localStorage.setItem(key, val); } catch { storageAvailable = false; memStore[key] = val; }
+    }
+
+    const STORAGE_KEY = 'sturdy_standalone_v1';
+    const DEFAULT_STATE = {
+      profile: { pin:'1234', parent1:'Mom', parent2:'Dad', child:'Buddy', age:4 },
+      activeParent: 'parent1',
+      logs: [],
+      customScripts: [],
+      favorites: ['calm-body-fewest-words','true-boundary-what-i-will-do','two-things-are-true'],
+    };
+
+    function loadState() {
+      try {
+        const raw = readStore(STORAGE_KEY);
+        if (!raw) return JSON.parse(JSON.stringify(DEFAULT_STATE));
+        const p = JSON.parse(raw);
+        return {
+          profile: { ...DEFAULT_STATE.profile, ...(p.profile || {}) },
+          activeParent: p.activeParent || 'parent1',
+          logs: Array.isArray(p.logs) ? p.logs : [],
+          customScripts: Array.isArray(p.customScripts) ? p.customScripts : [],
+          favorites: Array.isArray(p.favorites) ? p.favorites : DEFAULT_STATE.favorites,
+        };
+      } catch { return JSON.parse(JSON.stringify(DEFAULT_STATE)); }
+    }
+
+    let state = loadState();
+    let ui = {
+      locked: false,
+      pinDigits: '',
+      pinError: false,
+      tab: 'sos',
+      triggerId: null,
+      isTired: false,
+      mantraIdx: 0,
+      breathing: false,
+      bPhase: 'inhale',
+      bSec: 4,
+      cardMode: {},     // id -> boolean (true = fewest words)
+      cardExpanded: {}, // id -> boolean
+      logSheet: null,
+      addScriptOpen: false,
+      libQuery: '',
+      libFilter: 'all',
+      pillarsOpen: false,
+      insightFilter: 'all',
+      toast: '',
+    };
+
+    let breatheTimer = null;
+    let toastTimer = null;
+
+    function persist() { writeStore(STORAGE_KEY, JSON.stringify(state)); }
+    function toast(msg) {
+      ui.toast = msg;
+      render();
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => { ui.toast = ''; render(); }, 2400);
+    }
+
+    function esc(s) {
+      return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+    function fmt(text) {
+      const name = (state.profile.child || 'Buddy').trim() || 'Buddy';
+      return esc(String(text || '').replace(/\{child\}/g, name));
+    }
+    function activeParentName() {
+      return ui.activeParentOverride || (state.activeParent === 'parent2' ? state.profile.parent2 : state.profile.parent1) || 'Mom';
+    }
+    function allStrategies() { return [...state.customScripts, ...STRATEGIES]; }
+    function getTrigger(id) { return TRIGGERS.find(t => t.id === id) || TRIGGERS[0]; }
+    function relTime(iso) {
+      const m = Math.floor((Date.now() - new Date(iso).getTime()) / 60000);
+      if (m < 1) return 'Just now';
+      if (m < 60) return m + 'm ago';
+      const h = Math.floor(m / 60);
+      if (h < 24) return h + 'h ago';
+      const d = Math.floor(h / 24);
+      return d === 1 ? 'Yesterday' : d + 'd ago';
+    }
+
+    function computeStats(logs, opts = {}) {
+      const map = new Map();
+      for (const l of logs) {
+        if (opts.triggerId && l.triggerId !== opts.triggerId) continue;
+        if (opts.tiredOnly && !l.wasTired) continue;
+        if (!map.has(l.strategyId)) map.set(l.strategyId, { id:l.strategyId, title:l.strategyTitle, helped:0, somewhat:0, escalated:0, total:0 });
+        const s = map.get(l.strategyId);
+        s[l.outcome] = (s[l.outcome] || 0) + 1;
+        s.total++;
+      }
+      for (const s of map.values()) {
+        s.score = s.helped - s.escalated * 0.85 + s.somewhat * 0.35;
+      }
+      return map;
+    }
+
+    function rankedForTrigger(triggerId, isTired) {
+      const list = allStrategies().filter(s => s.triggers.includes(triggerId));
+      const tStats = computeStats(state.logs, { triggerId });
+      const tiredStats = isTired ? computeStats(state.logs, { triggerId, tiredOnly: true }) : new Map();
+      const allStats = computeStats(state.logs);
+      return list.map(s => {
+        const ctx = tiredStats.get(s.id) || tStats.get(s.id);
+        const gen = allStats.get(s.id);
+        const fav = state.favorites.includes(s.id);
+        let rank = (ctx ? ctx.score * 4 : 0) + (gen ? gen.score * 1.5 : 0) + (fav ? 2.2 : 0)
+          + (isTired && s.tiredOk ? 2.5 : 0) + (isTired && s.low ? 1.5 : 0)
+          + ((triggerId === 'flooded' || triggerId === 'dfk') && s.low ? 2 : 0)
+          + (s.id === 'after-storm-repair' ? -3.5 : 0);
+        return { s, stat: ctx || gen || null, isCtx: !!ctx, fav, rank };
+      }).sort((a, b) => b.rank - a.rank);
+    }
+
+    function toggleBreathe() {
+      ui.breathing = !ui.breathing;
+      clearInterval(breatheTimer);
+      if (ui.breathing) {
+        ui.bPhase = 'inhale'; ui.bSec = 4;
+        breatheTimer = setInterval(() => {
+          ui.bSec -= 1;
+          if (ui.bSec <= 0) {
+            ui.bPhase = ui.bPhase === 'inhale' ? 'exhale' : 'inhale';
+            ui.bSec = ui.bPhase === 'inhale' ? 4 : 6;
+          }
+          render();
+        }, 1000);
+      }
+      render();
+    }
+
+    function loadSampleLogs() {
+      const now = Date.now(), h = 3600000;
+      const p1 = state.profile.parent1 || 'Mom', p2 = state.profile.parent2 || 'Dad';
+      const samples = [
+        { id:'smp-1-'+now, createdAt:new Date(now-2*h).toISOString(), parentName:p2, triggerId:'boundaries', strategyId:'true-boundary-what-i-will-do', strategyTitle:'True Boundary ("What I Will Do")', outcome:'helped', wasTired:true, wasFlooded:false, contextTags:['Before dinner'], notes:'Refused to get off the kitchen stool. Picked him up calmly instead of repeating 5 times—cried 2 mins then settled.' },
+        { id:'smp-2-'+now, createdAt:new Date(now-14*h).toISOString(), parentName:p1, triggerId:'flooded', strategyId:'silent-sturdy-anchor', strategyTitle:'Silent Sturdy Anchor (Zero-Talk Mode)', outcome:'helped', wasTired:true, wasFlooded:true, contextTags:['Bedtime'], notes:'Couldn’t hear anything when screaming about pajamas. Stopped talking, sat by the door—he came over for a hug after 4 mins.' },
+        { id:'smp-3-'+now, createdAt:new Date(now-26*h).toISOString(), parentName:p1, triggerId:'dfk', strategyId:'validate-magnitude', strategyTitle:'Validate the Magnitude', outcome:'escalated', wasTired:true, wasFlooded:true, contextTags:['After preschool'], notes:'Too many words while overtired—he yelled "STOP TALKING!" Switching to silence helped next.' },
+        { id:'smp-4-'+now, createdAt:new Date(now-38*h).toISOString(), parentName:p2, triggerId:'transitions', strategyId:'two-things-are-true', strategyTitle:'Two Things Are True', outcome:'helped', wasTired:false, wasFlooded:false, contextTags:['Screen off'], notes:'Turned TV off cleanly and said "TV is off and you’re allowed to be mad." Way faster recovery.' },
+        { id:'smp-5-'+now, createdAt:new Date(now-52*h).toISOString(), parentName:p1, triggerId:'physical', strategyId:'redirect-body-urge', strategyTitle:'Safe Target for Big Body Energy', outcome:'somewhat', wasTired:true, wasFlooded:true, contextTags:['Before dinner','Hungry'], notes:'Pushing against my hands slowed the kicking, then needed a snack + quiet room.' },
+        { id:'smp-6-'+now, createdAt:new Date(now-74*h).toISOString(), parentName:p2, triggerId:'boundaries', strategyId:'two-choice-agency', strategyTitle:'Two Approved Choices Inside the Limit', outcome:'helped', wasTired:false, wasFlooded:false, contextTags:['Morning rush'], notes:'Asked if he wanted to stomp like a dinosaur or hop like a frog to get shoes on—zero meltdown!' },
+      ];
+      state.logs = [...samples, ...state.logs];
+      persist();
+      toast('Loaded 6 sample moments');
+    }
+
+    function renderStrategyCard(s, stat, isCtx, defaultLow) {
+      const isLow = ui.cardMode[s.id] !== undefined ? ui.cardMode[s.id] : (defaultLow || s.low);
+      const isExp = !!ui.cardExpanded[s.id];
+      const fav = state.favorites.includes(s.id);
+      const warn = stat && stat.escalated > 0 && stat.escalated >= stat.helped;
+      const script = isLow ? (s.sf || s.ss) : s.ss;
+      return `
+        <article class="card">
+          <div class="section-row" style="align-items:flex-start">
+            <div style="flex:1">
+              <div class="tags" style="margin-bottom:5px">
+                <span class="tag">${esc(s.principle)}</span>
+                ${s.tiredOk ? '<span class="tag tired">Tired-friendly</span>' : ''}
+                ${stat && stat.helped > 0 && !warn ? `<span class="tag helped">Helped ${stat.helped}/${stat.total}${isCtx ? ' here' : ''}</span>` : ''}
+                ${warn ? `<span class="tag warn">Escalated ${stat.escalated}× recently</span>` : ''}
+              </div>
+              <h3 class="strat-title">${esc(s.title)}</h3>
+            </div>
+            <button data-act="fav" data-id="${esc(s.id)}" style="font-size:1.15rem;padding:4px 6px;color:${fav ? 'var(--amber-500)' : 'var(--ink-muted)'}" title="Star go-to">${fav ? '★' : '☆'}</button>
+          </div>
+          <div class="script-box">
+            <div class="section-row">
+              <span class="kicker" style="color:var(--sage-700)">Say This</span>
+              ${s.sf && s.sf !== s.ss ? `
+                <div class="seg">
+                  <button data-act="mode" data-id="${esc(s.id)}" data-val="low" class="${isLow ? 'active' : ''}">Fewest words</button>
+                  <button data-act="mode" data-id="${esc(s.id)}" data-val="full" class="${!isLow ? 'active' : ''}">Full script</button>
+                </div>` : ''}
+            </div>
+            <p class="script-quote">${fmt(script)}</p>
+          </div>
+          ${s.body ? `<div><div class="kicker" style="margin-bottom:3px">Body & Presence</div><p class="detail-text">${fmt(s.body)}</p></div>` : ''}
+          <button class="expand-btn" data-act="expand" data-id="${esc(s.id)}">${isExp ? '▴ Hide why it works & what to avoid' : '▾ Why it works & what to avoid'}</button>
+          ${isExp ? `
+            <div style="display:flex;flex-direction:column;gap:10px">
+              ${s.mgi ? `<div><div class="kicker" style="margin-bottom:3px">Most Generous Interpretation</div><p class="detail-text">${fmt(s.mgi)}</p></div>` : ''}
+              ${s.avoid && s.avoid.length ? `<div><div class="kicker" style="margin-bottom:3px">Avoid Mid-Storm</div><ul class="avoid-ul">${s.avoid.map(a => `<li>${fmt(a)}</li>`).join('')}</ul></div>` : ''}
+            </div>` : ''}
+          <div style="padding-top:11px;border-top:1px solid var(--border-hairline);display:flex;flex-direction:column;gap:8px">
+            <span style="font-size:0.76rem;font-weight:600;color:var(--ink-secondary)">Tried this? Record how it went:</span>
+            <div class="outcome-row">
+              <button class="out-btn helped" data-act="open-log" data-sid="${esc(s.id)}" data-out="helped">✓ Helped</button>
+              <button class="out-btn somewhat" data-act="open-log" data-sid="${esc(s.id)}" data-out="somewhat">− Somewhat</button>
+              <button class="out-btn escalated" data-act="open-log" data-sid="${esc(s.id)}" data-out="escalated">! Escalated</button>
+            </div>
+          </div>
+        </article>
+      `;
+    }
+
+    function renderSos() {
+      const m = MANTRAS[ui.mantraIdx % MANTRAS.length];
+      const anchor = `
+        <section class="anchor">
+          <div class="anchor-top">
+            <div style="flex:1">
+              <div class="anchor-k">Your Anchor First</div>
+              <p class="anchor-text">${fmt(m.text)}</p>
+            </div>
+            <div class="anchor-btns">
+              <button class="a-icon" data-act="next-mantra" title="Next reminder">↻</button>
+              <button class="a-pill" data-act="breathe">${ui.breathing ? '✕ Done' : '≈ Breathe'}</button>
+            </div>
+          </div>
+          ${ui.breathing ? `
+            <div class="breathe-panel">
+              <div class="orb-wrap ${ui.bPhase}">
+                <div class="orb-outer"></div>
+                <div class="orb-inner">${ui.bSec}</div>
+              </div>
+              <div style="flex:1">
+                <div style="font-family:var(--font-serif);font-size:1.05rem">${ui.bPhase === 'inhale' ? 'Breathe in slowly…' : 'Long, steady exhale…'}</div>
+                <p style="font-size:0.8rem;opacity:0.86;margin-top:3px">${fmt(m.sub)} Drop your shoulders. Unclench your jaw.</p>
+              </div>
+            </div>` : ''}
+        </section>
+      `;
+
+      if (!ui.triggerId) {
+        const counts = {};
+        state.logs.forEach(l => counts[l.triggerId] = (counts[l.triggerId] || 0) + 1);
+        return `
+          ${anchor}
+          <div>
+            <h1 class="page-title">What’s happening right now?</h1>
+            <p class="page-sub">Tap the closest moment for fast, calm scripts tailored to ${esc(state.profile.child)}.</p>
+          </div>
+          <button class="modifier ${ui.isTired ? 'on' : ''}" data-act="toggle-tired">
+            <div style="display:flex;align-items:center;gap:10px">
+              <span style="font-size:1.1rem">☾</span>
+              <div>
+                <div style="font-size:0.9rem;font-weight:600">He’s tired / low battery</div>
+                <div style="font-size:0.76rem;color:var(--ink-secondary)">Prioritizes fewer words & lower demands</div>
+              </div>
+            </div>
+            <span class="switch ${ui.isTired ? 'on' : ''}"><span class="thumb"></span></span>
+          </button>
+          <div class="tgrid">
+            ${TRIGGERS.map(t => `
+              <button class="tile ${t.urgent ? 'urgent' : ''}" data-act="pick-trigger" data-tid="${t.id}">
+                <div class="section-row" style="align-items:flex-start">
+                  <span class="tile-title">${esc(t.label)}</span>
+                  ${counts[t.id] ? `<span class="count-pill">${counts[t.id]}</span>` : ''}
+                </div>
+                <span class="tile-sub">${esc(t.sub)}</span>
+              </button>
+            `).join('')}
+          </div>
+          <button class="btn-secondary" data-act="open-log" data-sid="custom-other" data-out="helped">+ Storm just passed? Log what happened</button>
+        `;
+      }
+
+      const trig = getTrigger(ui.triggerId);
+      const ranked = rankedForTrigger(ui.triggerId, ui.isTired);
+      const best = ranked.find(r => r.isCtx && r.stat && r.stat.helped > 0 && r.stat.score > 0);
+      return `
+        ${anchor}
+        <div class="section-row">
+          <button class="back-btn" data-act="clear-trigger">← All moments</button>
+          <button class="chip ${ui.isTired ? 'active' : ''}" data-act="toggle-tired">☾ ${ui.isTired ? 'Tired mode ON' : 'He’s tired?'}</button>
+        </div>
+        <h1 class="page-title">${esc(trig.label)}</h1>
+        <div class="reframe">
+          <span class="kicker" style="color:var(--sage-700)">Good Inside Reframe</span>
+          <p style="font-size:0.89rem">${fmt(trig.reframe)}</p>
+        </div>
+        ${best ? `
+          <div class="winner">
+            <div>
+              <div class="kicker" style="color:var(--sage-700)">✦ Works best for ${esc(state.profile.child)}${ui.isTired ? ' when tired' : ''}</div>
+              <div style="font-family:var(--font-serif);font-size:0.98rem;font-weight:600;margin-top:2px">${esc(best.s.title)}</div>
+            </div>
+            <span class="tag helped">${best.stat.helped}/${best.stat.total} helped</span>
+          </div>` : ''}
+        <div style="display:flex;flex-direction:column;gap:13px">
+          ${ranked.map(r => renderStrategyCard(r.s, r.stat, r.isCtx, ui.isTired || trig.low)).join('')}
+        </div>
+      `;
+    }
+
+    function renderLibrary() {
+      const stats = computeStats(state.logs);
+      const q = ui.libQuery.trim().toLowerCase();
+      const list = allStrategies().filter(s => {
+        if (ui.libFilter === 'starred' && !state.favorites.includes(s.id)) return false;
+        if (ui.libFilter === 'custom' && !s.isCustom) return false;
+        if (!['all','starred','custom'].includes(ui.libFilter) && !s.triggers.includes(ui.libFilter)) return false;
+        if (!q) return true;
+        return [s.title, s.principle, s.ss, s.sf, s.body, s.mgi].join(' ').toLowerCase().includes(q);
+      });
+      return `
+        <div class="section-row" style="align-items:flex-start">
+          <div>
+            <h1 class="page-title">Scripts & Playbook</h1>
+            <p class="page-sub">Good Inside tools for age ${state.profile.age}, plus your family’s scripts.</p>
+          </div>
+          <button class="btn-secondary" style="min-height:36px;padding:0 12px" data-act="open-add-script">+ Add</button>
+        </div>
+        <div class="card" style="padding:13px 15px">
+          <button class="section-row" style="width:100%;font-weight:600;font-size:0.89rem" data-act="toggle-pillars">
+            <span>6 Good Inside Pillars (Quick Refresher)</span>
+            <span>${ui.pillarsOpen ? '▴' : '▾'}</span>
+          </button>
+          ${ui.pillarsOpen ? `<div style="display:flex;flex-direction:column;gap:9px;padding-top:4px">${PILLARS.map(([t,d]) => `<div><strong style="font-size:0.85rem;color:var(--sage-700)">${esc(t)}</strong><p style="font-size:0.82rem;color:var(--ink-secondary)">${esc(d)}</p></div>`).join('')}</div>` : ''}
+        </div>
+        <input class="input" id="lib-search" type="search" placeholder="Search scripts (hitting, silent, bedtime, choices)…" value="${esc(ui.libQuery)}" />
+        <div class="chip-scroll">
+          <button class="chip ${ui.libFilter==='all'?'active':''}" data-act="lib-filter" data-val="all">All (${allStrategies().length})</button>
+          <button class="chip ${ui.libFilter==='starred'?'active':''}" data-act="lib-filter" data-val="starred">★ Go-Tos (${state.favorites.length})</button>
+          <button class="chip ${ui.libFilter==='custom'?'active':''}" data-act="lib-filter" data-val="custom">Our Scripts</button>
+          ${TRIGGERS.map(t => `<button class="chip ${ui.libFilter===t.id?'active':''}" data-act="lib-filter" data-val="${t.id}">${esc(t.short)}</button>`).join('')}
+        </div>
+        <div style="display:flex;flex-direction:column;gap:13px">
+          ${list.length ? list.map(s => renderStrategyCard(s, stats.get(s.id) || null, false, false)).join('') : '<div class="empty"><strong>No matching scripts</strong><button class="btn-secondary" data-act="lib-reset">Reset filters</button></div>'}
+        </div>
+      `;
+    }
+
+    function renderInsights() {
+      const logs = state.logs;
+      if (!logs.length) {
+        return `
+          <div><h1 class="page-title">Log & Insights</h1><p class="page-sub">What actually works for ${esc(state.profile.child)} over time.</p></div>
+          <div class="empty">
+            <strong style="font-family:var(--font-serif);font-size:1.1rem">Your pattern log starts here</strong>
+            <p style="font-size:0.85rem;color:var(--ink-secondary);max-width:330px">Tap <strong>Helped</strong>, <strong>Somewhat</strong>, or <strong>Escalated</strong> on any strategy after a tough moment. Sturdy learns what calms ${esc(state.profile.child)} fastest—especially when tired.</p>
+            <button class="btn-primary" style="max-width:260px" data-act="open-log" data-sid="true-boundary-what-i-will-do" data-out="helped">Log your first moment</button>
+            <button class="btn-secondary" data-act="load-samples">Preview with 6 sample moments</button>
+          </div>
+        `;
+      }
+      const total = logs.length;
+      const helpedPct = Math.round(logs.filter(l => l.outcome === 'helped').length / total * 100);
+      const tiredPct = Math.round(logs.filter(l => l.wasTired).length / total * 100);
+      const sorted = [...logs].sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
+      const latest = sorted[0];
+      const allStats = Array.from(computeStats(logs).values());
+      const top = allStats.filter(s => s.helped > 0).sort((a,b) => b.score - a.score).slice(0,5);
+      const watch = allStats.filter(s => s.escalated > 0 && s.escalated >= s.helped).sort((a,b) => b.escalated - a.escalated).slice(0,3);
+      const tiredTop = Array.from(computeStats(logs, { tiredOnly:true }).values()).filter(s => s.helped > 0).sort((a,b) => b.score - a.score).slice(0,3);
+      const filtered = sorted.filter(l => {
+        if (ui.insightFilter === 'all') return true;
+        if (ui.insightFilter === 'helped') return l.outcome === 'helped';
+        if (ui.insightFilter === 'escalated') return l.outcome === 'escalated';
+        if (ui.insightFilter === 'tired') return l.wasTired;
+        return l.parentName === ui.insightFilter;
+      });
+      return `
+        <div class="section-row" style="align-items:flex-start">
+          <div><h1 class="page-title">Log & Insights</h1><p class="page-sub">What actually works for ${esc(state.profile.child)}.</p></div>
+          <button class="btn-secondary" style="min-height:36px;padding:0 12px" data-act="open-log" data-sid="true-boundary-what-i-will-do" data-out="helped">+ Log</button>
+        </div>
+        <section class="winner" style="flex-direction:column;align-items:stretch;gap:5px">
+          <div class="section-row"><span class="kicker" style="color:var(--sage-700)">Latest Co-Parent Handoff</span><span style="font-size:0.74rem;color:var(--ink-secondary)">${relTime(latest.createdAt)}</span></div>
+          <p style="font-size:0.89rem"><strong>${esc(latest.parentName)}</strong> logged <strong>${esc(getTrigger(latest.triggerId).short)}</strong>${latest.wasTired ? ' (tired)' : ''} → <em>${esc(latest.strategyTitle)}</em> <span class="tag ${latest.outcome === 'helped' ? 'helped' : latest.outcome === 'escalated' ? 'warn' : 'tired'}">${latest.outcome}</span></p>
+          ${latest.notes ? `<p style="font-size:0.82rem;color:var(--ink-secondary)">“${esc(latest.notes)}”</p>` : ''}
+        </section>
+        <div class="stats-3">
+          <div class="stat-box"><div class="stat-num">${total}</div><div class="stat-lbl">Moments logged</div></div>
+          <div class="stat-box"><div class="stat-num" style="color:var(--sage-700)">${helpedPct}%</div><div class="stat-lbl">Helped calm</div></div>
+          <div class="stat-box"><div class="stat-num" style="color:var(--amber-700)">${tiredPct}%</div><div class="stat-lbl">While tired</div></div>
+        </div>
+        ${top.length ? `
+          <section class="card">
+            <span class="kicker">What Works Best for ${esc(state.profile.child)}</span>
+            ${top.map(s => `
+              <div>
+                <div class="section-row" style="font-size:0.85rem"><strong>${esc(s.title)}</strong><span style="font-size:0.75rem;color:var(--ink-secondary)">${s.helped}/${s.total} helped</span></div>
+                <div class="track">
+                  <div class="seg-h" style="width:${s.helped/s.total*100}%"></div>
+                  <div class="seg-s" style="width:${s.somewhat/s.total*100}%"></div>
+                  <div class="seg-e" style="width:${s.escalated/s.total*100}%"></div>
+                </div>
+              </div>`).join('')}
+            ${tiredTop.length ? `<div style="padding-top:8px;border-top:1px solid var(--border-hairline)"><div style="font-size:0.75rem;font-weight:700;color:var(--amber-700);margin-bottom:6px">☾ Top picks when overtired:</div><div class="tags">${tiredTop.map(t => `<span class="tag tired">${esc(t.title)} (${t.helped}×)</span>`).join('')}</div></div>` : ''}
+          </section>` : ''}
+        ${watch.length ? `
+          <section class="card" style="background:var(--terra-100);border-color:hsl(18,45%,86%)">
+            <span class="kicker" style="color:var(--terra-600)">Watch Out — Tended to Escalate</span>
+            ${watch.map(w => `<div class="section-row" style="font-size:0.87rem"><strong>${esc(w.title)}</strong><span style="color:var(--terra-600);font-weight:600">Escalated ${w.escalated}/${w.total}</span></div>`).join('')}
+            <p style="font-size:0.8rem;color:var(--ink-secondary)">Tip: If talking escalates ${esc(state.profile.child)}, switch to <strong>Fewest Words</strong> or <strong>Silent Sturdy Anchor</strong>.</p>
+          </section>` : ''}
+        <section class="card">
+          <span class="kicker">Shared History (${filtered.length})</span>
+          <div class="chip-scroll">
+            ${[['all','All'],['helped','Helped'],['escalated','Escalated'],['tired','Tired'],[state.profile.parent1,state.profile.parent1],[state.profile.parent2,state.profile.parent2]].map(([v,l]) => `<button class="chip ${ui.insightFilter===v?'active':''}" data-act="ins-filter" data-val="${esc(v)}">${esc(l)}</button>`).join('')}
+          </div>
+          <div>
+            ${filtered.map(l => `
+              <div class="log-row">
+                <div class="section-row"><strong style="font-family:var(--font-serif);font-size:0.98rem">${esc(l.strategyTitle)}</strong><span class="tag ${l.outcome==='helped'?'helped':l.outcome==='escalated'?'warn':'tired'}">${l.outcome}</span></div>
+                <div class="tags">
+                  <span class="tag">${esc(getTrigger(l.triggerId).short)}</span>
+                  ${l.wasTired ? '<span class="tag tired">☾ Tired</span>' : ''}
+                  ${l.wasFlooded ? '<span class="tag warn">Flooded</span>' : ''}
+                  ${(l.contextTags||[]).map(c => `<span class="tag">${esc(c)}</span>`).join('')}
+                </div>
+                ${l.notes ? `<p style="font-size:0.84rem;color:var(--ink-secondary)">${esc(l.notes)}</p>` : ''}
+                <div class="section-row" style="font-size:0.74rem;color:var(--ink-muted)">
+                  <span>${esc(l.parentName)} · ${relTime(l.createdAt)}</span>
+                  <button data-act="del-log" data-id="${esc(l.id)}" style="color:var(--ink-muted);font-size:0.74rem">Remove</button>
+                </div>
+              </div>`).join('')}
+          </div>
+        </section>
+      `;
+    }
+
+    function renderFamily() {
+      const p = state.profile;
+      return `
+        <div><h1 class="page-title">Family & Device</h1><p class="page-sub">Personalize names for every script and manage local backup or PIN lock.</p></div>
+        <form id="family-form" class="card">
+          <div class="section-row">
+            <span class="kicker">Family Names & PIN</span>
+            <button type="button" class="btn-secondary" style="min-height:34px;padding:0 10px;font-size:0.78rem" data-act="lock-app">Lock App</button>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <label class="field"><span class="flabel">Parent 1</span><input class="input" name="parent1" value="${esc(p.parent1)}" /></label>
+            <label class="field"><span class="flabel">Parent 2</span><input class="input" name="parent2" value="${esc(p.parent2)}" /></label>
+          </div>
+          <div style="display:grid;grid-template-columns:2fr 1fr;gap:10px">
+            <label class="field"><span class="flabel">Child’s name (used in scripts)</span><input class="input" name="child" value="${esc(p.child)}" /></label>
+            <label class="field"><span class="flabel">Age</span><input class="input" type="number" name="age" min="1" max="12" value="${esc(p.age)}" /></label>
+          </div>
+          <label class="field"><span class="flabel">4-Digit Family PIN</span><input class="input" type="password" inputmode="numeric" maxlength="4" name="pin" value="${esc(p.pin)}" /></label>
+          <button type="submit" class="btn-primary">Save Family Settings</button>
+        </form>
+        <section class="card">
+          <span class="kicker">Device Storage & Backup (${state.logs.length} moments)</span>
+          <p style="font-size:0.83rem;color:var(--ink-secondary)">${storageAvailable ? 'Saving automatically to this device’s browser storage.' : 'Running in preview sandbox (in-session storage). Once deployed to your phone URL, records persist permanently on your device.'}</p>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="btn-secondary" style="flex:1" data-act="export-json">Export JSON Backup</button>
+            <button class="btn-secondary" style="flex:1" data-act="load-samples">Load 6 sample moments</button>
+          </div>
+          ${state.logs.length ? `<button class="btn-secondary" style="color:var(--terra-600)" data-act="clear-logs">Clear all logs</button>` : ''}
+        </section>
+      `;
+    }
+
+    function renderLogSheet() {
+      const d = ui.logSheet;
+      if (!d) return '';
+      return `
+        <div class="backdrop" data-act="close-sheet">
+          <form id="log-form" class="sheet" onclick="event.stopPropagation()">
+            <div class="handle"></div>
+            <div class="section-row">
+              <h2 style="font-family:var(--font-serif);font-size:1.22rem">Log This Moment</h2>
+              <button type="button" data-act="close-sheet" style="font-size:1.1rem;padding:6px">✕</button>
+            </div>
+            <div class="field">
+              <span class="flabel">How did it go?</span>
+              <div class="outcome-row">
+                ${['helped','somewhat','escalated'].map(o => `<button type="button" class="out-btn ${o} ${d.outcome===o?'sel':''}" data-act="sheet-out" data-val="${o}">${o==='helped'?'✓ Helped':o==='somewhat'?'− Somewhat':'! Escalated'}</button>`).join('')}
+              </div>
+            </div>
+            <label class="field">
+              <span class="flabel">What triggered it?</span>
+              <select class="select" name="triggerId">${TRIGGERS.map(t => `<option value="${t.id}" ${d.triggerId===t.id?'selected':''}>${esc(t.label)}</option>`).join('')}</select>
+            </label>
+            <label class="field">
+              <span class="flabel">What did you try?</span>
+              <select class="select" name="strategyId">
+                ${allStrategies().map(s => `<option value="${esc(s.id)}" ${d.strategyId===s.id?'selected':''}>${esc(s.title)}</option>`).join('')}
+                <option value="custom-other" ${d.strategyId==='custom-other'?'selected':''}>Something else we tried…</option>
+              </select>
+            </label>
+            <div class="tags">
+              <button type="button" class="chip ${d.wasTired?'active':''}" data-act="sheet-tired">☾ He was tired</button>
+              <button type="button" class="chip ${d.wasFlooded?'active':''}" data-act="sheet-flooded">Couldn’t hear us (flooded)</button>
+            </div>
+            <div class="field">
+              <span class="flabel">When / context</span>
+              <div class="tags">${CONTEXT_TAGS.map(t => `<button type="button" class="chip ${(d.contextTags||[]).includes(t)?'active':''}" data-act="sheet-tag" data-val="${esc(t)}">${esc(t)}</button>`).join('')}</div>
+            </div>
+            <label class="field">
+              <span class="flabel">Quick note for next time (optional)</span>
+              <textarea class="textarea" name="notes" placeholder="What specifically helped or set ${esc(state.profile.child)} off?">${esc(d.notes||'')}</textarea>
+            </label>
+            <button type="submit" class="btn-primary">Save to Family Log</button>
+          </form>
+        </div>
+      `;
+    }
+
+    function renderAddScriptSheet() {
+      if (!ui.addScriptOpen) return '';
+      return `
+        <div class="backdrop" data-act="close-add-script">
+          <form id="add-script-form" class="sheet" onclick="event.stopPropagation()">
+            <div class="handle"></div>
+            <div class="section-row">
+              <h2 style="font-family:var(--font-serif);font-size:1.22rem">Add Family Script</h2>
+              <button type="button" data-act="close-add-script" style="font-size:1.1rem;padding:6px">✕</button>
+            </div>
+            <label class="field"><span class="flabel">Strategy name</span><input class="input" name="title" required placeholder="e.g., Dinosaur Stomp to Bed" /></label>
+            <label class="field"><span class="flabel">Best for which moment?</span><select class="select" name="triggerId">${TRIGGERS.map(t => `<option value="${t.id}">${esc(t.label)}</option>`).join('')}</select></label>
+            <label class="field"><span class="flabel">Exact script to say</span><textarea class="textarea" name="ss" required placeholder="e.g., Two things are true, {child}: playtime is done and you're mad."></textarea></label>
+            <label class="field"><span class="flabel">Fewest-words version (optional)</span><input class="input" name="sf" placeholder="e.g., Bedtime. Stomp or carry?" /></label>
+            <label class="field"><span class="flabel">Body / action tip (optional)</span><input class="input" name="body" placeholder="e.g., Kneel down and let him roar first" /></label>
+            <button type="submit" class="btn-primary">Save Custom Script</button>
+          </form>
+        </div>
+      `;
+    }
+
+    function renderPinGate() {
+      return `
+        <div class="viewport">
+          <div class="pin-wrap">
+            <div style="text-align:center;display:flex;flex-direction:column;align-items:center;gap:8px;margin-top:10px">
+              ${LOGO_SVG.replace('width="34" height="34"','width="54" height="54"')}
+              <h1 class="page-title">Sturdy</h1>
+              <p class="page-sub">Good Inside companion for ${esc(state.profile.child)} (${state.profile.age})</p>
+            </div>
+            <div style="text-align:center">
+              <div class="flabel">Enter 4-digit family PIN (default: ${esc(state.profile.pin)})</div>
+              <div class="pin-dots">${[0,1,2,3].map(i => `<span class="pin-dot ${i < ui.pinDigits.length ? 'filled' : ''} ${ui.pinError ? 'err' : ''}"></span>`).join('')}</div>
+              <div class="keypad" style="margin-top:14px">
+                ${['1','2','3','4','5','6','7','8','9'].map(k => `<button class="key" data-act="pin" data-val="${k}">${k}</button>`).join('')}
+                <button class="key muted" data-act="pin-clear">Clear</button>
+                <button class="key" data-act="pin" data-val="0">0</button>
+                <button class="key muted" data-act="pin-back">⌫</button>
+              </div>
+            </div>
+            <div style="font-size:0.75rem;color:var(--ink-muted)">Private family space</div>
+          </div>
+        </div>
+      `;
+    }
+
+    function render() {
+      const root = document.getElementById('root');
+      if (ui.locked) { root.innerHTML = renderPinGate(); return; }
+      const pName = activeParentName();
+      root.innerHTML = `
+        <div class="viewport">
+          <div class="shell">
+            <header class="header">
+              <div class="brand">
+                ${LOGO_SVG}
+                <div>
+                  <div class="brand-title">Sturdy</div>
+                  <div class="brand-sub"><span class="dot ${storageAvailable ? '' : 'warn'}"></span><span>${esc(state.profile.child)} (${state.profile.age}) · On Device</span></div>
+                </div>
+              </div>
+              <button class="parent-pill" data-act="switch-parent" title="Switch active parent">
+                <span class="parent-avatar">${esc(pName.slice(0,1).toUpperCase())}</span>
+                <span>${esc(pName)}</span>
+              </button>
+            </header>
+            ${ui.toast ? `<div class="toast">✓ ${esc(ui.toast)}</div>` : ''}
+            <main class="main">
+              ${ui.tab === 'sos' ? renderSos() : ui.tab === 'library' ? renderLibrary() : ui.tab === 'insights' ? renderInsights() : renderFamily()}
+            </main>
+            <nav class="bnav">
+              <button class="nav-btn sos ${ui.tab==='sos'?'active':''}" data-act="tab" data-val="sos"><span>♥</span><span>SOS</span></button>
+              <button class="nav-btn ${ui.tab==='library'?'active':''}" data-act="tab" data-val="library"><span>☰</span><span>Scripts</span></button>
+              <button class="nav-btn ${ui.tab==='insights'?'active':''}" data-act="tab" data-val="insights"><span>▮</span><span>Insights</span></button>
+              <button class="nav-btn ${ui.tab==='family'?'active':''}" data-act="tab" data-val="family"><span>⚙</span><span>Family</span></button>
+            </nav>
+            ${renderLogSheet()}
+            ${renderAddScriptSheet()}
+          </div>
+        </div>
+      `;
+      const searchEl = document.getElementById('lib-search');
+      if (searchEl && ui.tab === 'library') {
+        searchEl.oninput = (e) => { ui.libQuery = e.target.value; render(); document.getElementById('lib-search')?.focus(); };
+      }
+    }
+
+    document.addEventListener('click', (e) => {
+      const btn = e.target.closest('[data-act]');
+      if (!btn) return;
+      const act = btn.dataset.act;
+      if (act === 'tab') { ui.tab = btn.dataset.val; window.scrollTo(0,0); render(); }
+      else if (act === 'switch-parent') {
+        state.activeParent = state.activeParent === 'parent1' ? 'parent2' : 'parent1';
+        persist(); toast('Active parent: ' + activeParentName());
+      }
+      else if (act === 'next-mantra') { ui.mantraIdx++; render(); }
+      else if (act === 'breathe') { toggleBreathe(); }
+      else if (act === 'toggle-tired') { ui.isTired = !ui.isTired; render(); }
+      else if (act === 'pick-trigger') { ui.triggerId = btn.dataset.tid; window.scrollTo(0,0); render(); }
+      else if (act === 'clear-trigger') { ui.triggerId = null; render(); }
+      else if (act === 'fav') {
+        const id = btn.dataset.id;
+        state.favorites = state.favorites.includes(id) ? state.favorites.filter(x => x !== id) : [...state.favorites, id];
+        persist(); render();
+      }
+      else if (act === 'mode') { ui.cardMode[btn.dataset.id] = btn.dataset.val === 'low'; render(); }
+      else if (act === 'expand') { ui.cardExpanded[btn.dataset.id] = !ui.cardExpanded[btn.dataset.id]; render(); }
+      else if (act === 'open-log') {
+        const sid = btn.dataset.sid;
+        const trig = ui.triggerId || (allStrategies().find(x => x.id === sid)?.triggers[0]) || 'boundaries';
+        ui.logSheet = { triggerId: trig, strategyId: sid, outcome: btn.dataset.out || 'helped', wasTired: ui.isTired || trig === 'overtired', wasFlooded: trig === 'flooded' || trig === 'dfk', contextTags: [], notes: '' };
+        render();
+      }
+      else if (act === 'close-sheet') { ui.logSheet = null; render(); }
+      else if (act === 'sheet-out') { ui.logSheet.outcome = btn.dataset.val; render(); }
+      else if (act === 'sheet-tired') { ui.logSheet.wasTired = !ui.logSheet.wasTired; render(); }
+      else if (act === 'sheet-flooded') { ui.logSheet.wasFlooded = !ui.logSheet.wasFlooded; render(); }
+      else if (act === 'sheet-tag') {
+        const t = btn.dataset.val;
+        const arr = ui.logSheet.contextTags || [];
+        ui.logSheet.contextTags = arr.includes(t) ? arr.filter(x => x !== t) : [...arr, t];
+        render();
+      }
+      else if (act === 'toggle-pillars') { ui.pillarsOpen = !ui.pillarsOpen; render(); }
+      else if (act === 'lib-filter') { ui.libFilter = btn.dataset.val; render(); }
+      else if (act === 'lib-reset') { ui.libFilter = 'all'; ui.libQuery = ''; render(); }
+      else if (act === 'open-add-script') { ui.addScriptOpen = true; render(); }
+      else if (act === 'close-add-script') { ui.addScriptOpen = false; render(); }
+      else if (act === 'ins-filter') { ui.insightFilter = btn.dataset.val; render(); }
+      else if (act === 'del-log') { state.logs = state.logs.filter(l => l.id !== btn.dataset.id); persist(); toast('Removed entry'); }
+      else if (act === 'load-samples') { loadSampleLogs(); }
+      else if (act === 'clear-logs') { state.logs = []; persist(); toast('Cleared logs'); }
+      else if (act === 'lock-app') { ui.locked = true; ui.pinDigits = ''; ui.pinError = false; render(); }
+      else if (act === 'pin') {
+        if (ui.pinDigits.length >= 4) return;
+        ui.pinDigits += btn.dataset.val;
+        if (ui.pinDigits.length === 4) {
+          if (ui.pinDigits === state.profile.pin) { ui.locked = false; ui.pinDigits = ''; }
+          else { ui.pinError = true; render(); setTimeout(() => { ui.pinDigits = ''; ui.pinError = false; render(); }, 500); return; }
+        }
+        render();
+      }
+      else if (act === 'pin-clear') { ui.pinDigits = ''; render(); }
+      else if (act === 'pin-back') { ui.pinDigits = ui.pinDigits.slice(0,-1); render(); }
+      else if (act === 'export-json') {
+        const blob = new Blob([JSON.stringify(state, null, 2)], { type:'application/json' });
+        const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+        a.download = 'sturdy-family-backup.json'; a.click(); toast('Exported backup');
+      }
+    });
+
+    document.addEventListener('submit', (e) => {
+      if (e.target.id === 'log-form') {
+        e.preventDefault();
+        const fd = new FormData(e.target);
+        const sid = fd.get('strategyId');
+        const found = allStrategies().find(s => s.id === sid);
+        state.logs.unshift({
+          id: 'log-' + Date.now(),
+          createdAt: new Date().toISOString(),
+          parentName: activeParentName(),
+          triggerId: fd.get('triggerId'),
+          strategyId: sid,
+          strategyTitle: found ? found.title : 'Something else we tried',
+          outcome: ui.logSheet.outcome,
+          wasTired: ui.logSheet.wasTired,
+          wasFlooded: ui.logSheet.wasFlooded,
+          contextTags: ui.logSheet.contextTags || [],
+          notes: String(fd.get('notes') || '').trim(),
+        });
+        ui.logSheet = null;
+        persist();
+        toast('Saved to Family Log');
+      } else if (e.target.id === 'add-script-form') {
+        e.preventDefault();
+        const fd = new FormData(e.target);
+        const trig = fd.get('triggerId');
+        state.customScripts.unshift({
+          id: 'custom-' + Date.now(),
+          title: String(fd.get('title')).trim(),
+          principle: 'Our Family Script',
+          triggers: [trig],
+          tiredOk: true,
+          low: Boolean(String(fd.get('sf') || '').trim()),
+          mgi: 'Saved by ' + activeParentName() + ' for our family.',
+          sf: String(fd.get('sf') || '').trim() || String(fd.get('ss')).trim(),
+          ss: String(fd.get('ss')).trim(),
+          body: String(fd.get('body') || '').trim(),
+          avoid: [],
+          isCustom: true,
+        });
+        ui.addScriptOpen = false;
+        persist();
+        toast('Saved custom script');
+      } else if (e.target.id === 'family-form') {
+        e.preventDefault();
+        const fd = new FormData(e.target);
+        const pin = String(fd.get('pin') || '1234').replace(/\D/g, '').slice(0,4);
+        state.profile = {
+          parent1: String(fd.get('parent1') || 'Mom').trim() || 'Mom',
+          parent2: String(fd.get('parent2') || 'Dad').trim() || 'Dad',
+          child: String(fd.get('child') || 'Buddy').trim() || 'Buddy',
+          age: Number(fd.get('age')) || 4,
+          pin: pin.length === 4 ? pin : state.profile.pin,
+        };
+        persist();
+        toast('Family settings saved');
+      }
+    });
+
+    render();
+  })();
+  </script>
+</body>
+</html>
