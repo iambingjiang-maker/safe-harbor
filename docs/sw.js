@@ -1,4 +1,4 @@
-const CACHE_NAME = 'sturdy-family-v10';
+const CACHE_NAME = 'safe-harbor-v11';
 const APP_SHELL = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', (event) => {

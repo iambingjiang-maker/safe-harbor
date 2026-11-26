@@ -113,7 +113,7 @@ export default function InsightsView({
           </div>
           <p className="empty-sub">
             After a tough moment, tap <strong>Helped</strong>, <strong>Somewhat</strong>, or{' '}
-            <strong>Escalated</strong> on any strategy. Over just a few days, Sturdy learns what calms{' '}
+            <strong>Escalated</strong> on any strategy. Over just a few days, Safe Harbor learns what calms{' '}
             {scopeLabel} fastest—especially when he’s tired or testing boundaries.
           </p>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'center', marginTop: 6 }}>

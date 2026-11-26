@@ -56,8 +56,8 @@ export default function PinGate({
     <div className="app-viewport">
       <div className="pin-screen">
         <div className="pin-hero">
-          <img src="./icon.svg" alt="Sturdy emblem" className="pin-logo" />
-          <h1 className="page-title">Sturdy</h1>
+          <img src="./icon.svg" alt="Safe Harbor emblem" className="pin-logo" />
+          <h1 className="page-title">Safe Harbor</h1>
           <p className="page-subtitle">
             Good Inside companion for {profile.childName || 'Liam'}
             {profile.child2Name ? ` & ${profile.child2Name}` : ` (${profile.childAge || 4})`}

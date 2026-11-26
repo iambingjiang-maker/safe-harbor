@@ -125,7 +125,7 @@ export default function App() {
           if (!silent) {
             showToast(
               result.provider === 'sheets'
-                ? 'Synced with Sturdy Data Google Sheet'
+                ? 'Synced with Safe Harbor Data Google Sheet'
                 : 'Synced with family cloud'
             );
           }
@@ -288,7 +288,7 @@ export default function App() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `sturdy-family-backup-${new Date().toISOString().slice(0, 10)}.json`;
+    a.download = `safe-harbor-backup-${new Date().toISOString().slice(0, 10)}.json`;
     a.click();
     URL.revokeObjectURL(url);
     showToast('Exported JSON backup');
@@ -327,9 +327,9 @@ export default function App() {
         {/* Sticky Header */}
         <header className="app-header">
           <div className="brand-lockup">
-            <img src="./icon.svg" alt="Sturdy" className="brand-mark" />
+            <img src="./icon.svg" alt="Safe Harbor" className="brand-mark" />
             <div>
-              <div className="brand-title">Sturdy</div>
+              <div className="brand-title">Safe Harbor</div>
               <div className="brand-sub">
                 <span
                   className={`sync-dot ${

@@ -122,7 +122,7 @@ export default function FamilyView({
         const parsed = JSON.parse(String(reader.result));
         onImportJson(parsed);
       } catch {
-        alert('Could not read backup file. Please choose a valid Sturdy JSON export.');
+        alert('Could not read backup file. Please choose a valid Safe Harbor JSON export.');
       }
     };
     reader.readAsText(file);
@@ -303,7 +303,7 @@ export default function FamilyView({
 
         <p style={{ fontSize: '0.84rem', color: 'var(--ink-secondary)', lineHeight: 1.48 }}>
           Every moment logged on {parent1Name}’s or {parent2Name}’s phone saves safely to your
-          private <strong>Sturdy Data</strong> Google Sheet and stays synced across devices.
+          private <strong>Safe Harbor Data</strong> Google Sheet and stays synced across devices.
         </p>
 
         <a
@@ -314,7 +314,7 @@ export default function FamilyView({
           style={{ textDecoration: 'none' }}
         >
           <ExternalLink size={15} />
-          Open “Sturdy Data” Google Sheet
+          Open “Safe Harbor Data” Google Sheet
         </a>
 
         {envSheetsCfg.source === 'env' && !sheetsUrl ? (
