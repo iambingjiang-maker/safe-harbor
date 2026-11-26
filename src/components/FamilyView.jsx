@@ -54,7 +54,9 @@ export default function FamilyView({
 
   const envSheetsCfg = getEnvSheetsConfig();
   const activeSheetsCfg = getActiveSheetsConfig();
-  const [sheetsUrl, setSheetsUrl] = useState(activeSheetsCfg.url || '');
+  const [sheetsUrl, setSheetsUrl] = useState(
+    activeSheetsCfg.source === 'manual' ? activeSheetsCfg.url : ''
+  );
 
   const envCfg = getEnvSupabaseConfig();
   const activeCfg = getActiveSupabaseConfig();
@@ -343,10 +345,17 @@ export default function FamilyView({
         )}
 
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-          <button type="submit" className="btn-primary" style={{ flex: 1 }}>
-            Connect & Sync
-          </button>
-          <button type="button" className="btn-secondary" onClick={onManualSync}>
+          {(envSheetsCfg.source !== 'env' || sheetsUrl) && (
+            <button type="submit" className="btn-primary" style={{ flex: 1 }}>
+              Connect & Sync
+            </button>
+          )}
+          <button
+            type="button"
+            className="btn-secondary"
+            onClick={onManualSync}
+            style={{ flex: envSheetsCfg.source === 'env' && !sheetsUrl ? 1 : undefined }}
+          >
             <RefreshCw size={15} />
             Sync Now
           </button>

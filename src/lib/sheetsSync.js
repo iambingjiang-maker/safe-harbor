@@ -3,9 +3,11 @@ const RUNTIME_SHEETS_KEY = 'sturdy_sheets_webapp_url_v1';
 export const FAMILY_SHEET_URL =
   'https://docs.google.com/spreadsheets/d/1muskxFgMmqYRWx85OnRsV34spQ98_jzEVXkBsiJUwSE/edit';
 
-// Optional baked-in Web App URL (set via Vite env or once deployed in Apps Script)
-export const DEFAULT_SHEETS_WEBAPP_URL =
-  (import.meta.env.VITE_SHEETS_WEBAPP_URL || '').trim();
+// Built-in Web App URL for the family's "Sturdy Data" Google Sheet
+export const DEFAULT_SHEETS_WEBAPP_URL = (
+  import.meta.env.VITE_SHEETS_WEBAPP_URL ||
+  'https://script.google.com/macros/s/AKfycbyIIyrp9NwMSge3TgzBSZWvRHbcx7HuBIEDqME0ZZcoKWw-891Cwp-xmMgrb53IGYVuvQ/exec'
+).trim();
 
 export function getEnvSheetsConfig() {
   const url = DEFAULT_SHEETS_WEBAPP_URL;
