@@ -1,48 +1,48 @@
-# Sturdy — Good Inside Family Companion (PWA)
+# Safe Harbor — Mobile-First Parenting Companion (PWA)
 
-A calm, mobile-first Progressive Web App inspired by Dr. Becky Kennedy's *Good Inside* book and podcast, tailored for parents of a 4-year-old who tests boundaries, melts down harder when overtired, and sometimes becomes so flooded/angry he cannot hear words.
+A calm, mobile-first Progressive Web App inspired by attachment- and connection-based parenting principles (*Good Inside*), designed for high-stress, one-handed moments with young kids.
 
-## What's Inside (v1)
-
-- **SOS In-the-Moment Mode**:
-  - **Parent Grounding Anchor**: 4s-inhale / 6s-exhale guided breathing pacer + rotating *Good Inside* mantras.
-  - **"He's tired / low battery" toggle**: Automatically prioritizes lower-demand, fewer-word strategies.
-  - **8 One-Tap Moment Tiles**: *Flooded / Can't Hear Us*, *Testing Boundaries*, *Angry / Physical Urges*, *Escalates When We Talk (DFK mode)*, *Overtired Crash*, *Transition Meltdown*, *Frustrated / Stuck*, and *Sharing / Waiting*.
-  - **Fewest Words vs. Full Script toggle** on strategy cards, personalized live with your child's name.
-  - **1-Tap Logging** (`Helped` / `Somewhat` / `Escalated`) right on every strategy card.
-- **Shared Log & Pattern Insights**:
-  - Co-parent handoff card showing the latest logged moment.
-  - Automatic ranking of **What Works Best** (overall, per trigger, and specifically when overtired) + **Watch Out** flags for strategies that tend to escalate.
-  - Filterable shared timeline across both parents.
-- **Scripts & Playbook**:
-  - 20+ clinically grounded *Good Inside* strategies + 6 Core Pillars quick refresher.
-  - Add custom family scripts that sync between both phones.
-- **Shared Family PIN & Editable Names**:
-  - Default PIN `1234` (customizable in **Family** settings), with a *"Keep this phone unlocked"* option so neither parent is ever blocked mid-meltdown.
+**Live App:** https://iambingjiang-maker.github.io/safe-harbor/
 
 ---
 
-## 5-Minute Setup for Both Parents' Phones (Vercel + Supabase Free Tier)
+## Why I Built This
 
-### Step 1: Create a free Supabase project
-1. Go to [supabase.com](https://supabase.com) and create a new free project.
-2. Open **SQL Editor → New Query**, paste the contents of `supabase/schema.sql`, and click **Run**.
-3. Go to **Project Settings → API** and copy:
-   - **Project URL** (`VITE_SUPABASE_URL`)
-   - **Publishable / anon key** (`VITE_SUPABASE_ANON_KEY`)
+During a toddler meltdown, parents don't have time to search articles or remember scripts—they need calm, low-cognitive-load guidance in under three seconds, plus a lightweight way for co-parents to track what actually works over time.
 
-### Step 2: Deploy to Vercel (Free)
-1. Push this folder (`good-inside-family`) to a private GitHub repo (or run `npx vercel` inside the folder).
-2. In Vercel → **Project Settings → Environment Variables**, add:
-   - `VITE_SUPABASE_URL`
-   - `VITE_SUPABASE_ANON_KEY`
-3. Deploy! (Or skip environment variables and paste them directly inside the app's **Family → Co-Parent Cloud Sync** section.)
+Safe Harbor was designed and iterated as a real-world, AI-assisted product build: going from concept to a daily-use iPhone Home Screen app with zero monthly hosting costs and automatic co-parent cloud sync.
 
-### Step 3: Install on Both Phones
-1. Open your Vercel URL on **Mom's phone** and **Dad's phone**.
-2. **iPhone (Safari)**: Tap **Share → Add to Home Screen**.
-3. **Android (Chrome)**: Tap **Menu (⋮) → Install app / Add to Home Screen**.
-4. In the app's **Family** tab, make sure both phones use the exact same **Shared Family Code** and **4-Digit PIN**, and select your own parent name (`Mom` / `Dad`) at the top!
+---
+
+## Key Features (v1)
+
+- **SOS In-the-Moment Mode**
+  - **Parent Grounding Anchor:** Guided 4s-inhale / 6s-exhale breathing pacer paired with rotating grounding mantras.
+  - **Low-Battery / Tired Mode Toggle:** Switches all 8 moment tiles in place to ultra-short, low-demand scripts while keeping full scripts and tired-friendly ranking inside every category.
+  - **8 One-Tap Moment Categories:** *Flooded / Can't Hear Us*, *Testing Boundaries*, *Angry / Physical Urges*, *Escalates When We Talk*, *Overtired Crash*, *Transition Meltdown*, *Frustrated / Stuck*, and *Sharing / Waiting*.
+  - **1-Tap Outcome Logging:** Record `Helped`, `Somewhat`, or `Escalated` right from any strategy card, with optional context tags and notes.
+- **Shared Pattern Insights & Co-Parent Handoff**
+  - Co-parent handoff card showing the latest logged moment across devices.
+  - Automatic ranking of **What Works Best** (overall, per trigger, and when tired) alongside **Watch Out** flags for approaches that tend to escalate.
+  - Filterable shared timeline across parents and children.
+- **Multi-Child Support**
+  - Supports multiple children with a 1-tap switcher in the header, per-child script personalization, per-child tagging on logs, and filtered insights per child or combined.
+- **Scripts Playbook & Custom Family Scripts**
+  - 20+ structured scripts (full + fewest-word variants, body/presence cues, and what to avoid mid-storm) plus custom family scripts synced across phones.
+- **Per-Parent PIN Access & Offline-Capable PWA**
+  - Individual 4-digit PINs per parent with trusted-device unlock for fast SOS access.
+  - Installable on iOS/Android Home Screens with a network-first service worker for automatic updates and offline fallback.
+
+---
+
+## Architecture & Tech Stack
+
+- **Frontend:** React + Vite, custom responsive mobile-first CSS (safe-area / iPhone Pro layout), `lucide-react` icons
+- **PWA & Caching:** Web App Manifest + custom Service Worker (`public/sw.js`) with network-first HTML navigation and automatic controller-change refresh
+- **Cloud Sync ($0/mo):**
+  - **Google Sheets Backend:** Custom Google Apps Script Web App (`google-apps-script/Code.gs`) using `LockService` for concurrency-safe reads/writes across `Moments`, `CustomScripts`, `Favorites`, and `Profile` tabs
+  - **Optional Supabase Backend:** Postgres schema with Row Level Security and Realtime subscriptions (`supabase/schema.sql`)
+- **Hosting:** Static production bundle deployed to GitHub Pages (`main` → `/docs`)
 
 ---
 
@@ -53,8 +53,19 @@ npm install
 npm run dev
 ```
 
-To build for production:
+Build for production:
 
 ```bash
 npm run build
 ```
+
+---
+
+## Self-Hosting & Cloud Sync Setup
+
+1. Fork or clone this repository and enable GitHub Pages (or deploy to Vercel / Cloudflare Pages).
+2. *(Optional)* To enable multi-device cloud sync via Google Sheets:
+   - Create a Google Sheet with tabs `Moments`, `CustomScripts`, `Favorites`, and `Profile`.
+   - Open **Extensions → Apps Script**, paste `google-apps-script/Code.gs`, and deploy as a **Web app**.
+   - Paste your Web App URL in the app's **Family → Google Sheet Cloud Sync** panel (or set `VITE_SHEETS_WEBAPP_URL` at build time).
+3. *(Optional)* Alternatively, run `supabase/schema.sql` in a free Supabase project and connect via **Family → Alternative: Supabase Sync**.
