@@ -35,14 +35,6 @@ export default function SosView({
     });
   }, [selectedTriggerId, allStrategies, logs, favorites, isTired]);
 
-  const tiredQuickStrategies = useMemo(() => {
-    if (!isTired) return [];
-    return getRankedStrategiesForMoment(allStrategies, logs, favorites, {
-      triggerId: 'overtired',
-      isTired: true,
-    }).slice(0, 3);
-  }, [isTired, allStrategies, logs, favorites]);
-
   const bestForTrigger = useMemo(() => {
     const winner = ranked.find(
       (r) => r.isTriggerSpecific && r.stat && r.stat.helped > 0 && r.stat.score > 0
@@ -77,8 +69,8 @@ export default function SosView({
                 <div className="modifier-title">He’s tired / low battery</div>
                 <div className="modifier-desc">
                   {isTired
-                    ? 'ON — showing shortened, fewest-word scripts'
-                    : 'Prioritizes fewer words & lower demands'}
+                    ? 'ON — boosts tired-friendly scripts & adds short cues'
+                    : 'Prioritizes tired-friendly scripts & lower demands'}
                 </div>
               </div>
             </div>
@@ -87,60 +79,22 @@ export default function SosView({
             </span>
           </button>
 
-          {/* Immediate shortened scripts when Tired / Low Battery mode is ON */}
-          {isTired && (
-            <section style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              <div className="section-header">
-                <span className="section-label">Shortened Low-Battery Scripts</span>
-                <button
-                  type="button"
-                  className="filter-chip active"
-                  onClick={() => setSelectedTriggerId('overtired')}
-                >
-                  See all overtired
-                </button>
-              </div>
-              <div className="strategy-list">
-                {tiredQuickStrategies.map(({ strategy, stat, isTriggerSpecific, isFav }) => (
-                  <StrategyCard
-                    key={strategy.id}
-                    strategy={strategy}
-                    childName={profile.childName}
-                    stat={stat}
-                    isTriggerSpecific={isTriggerSpecific}
-                    isFav={isFav}
-                    defaultLowWords={true}
-                    onToggleFav={onToggleFav}
-                    onDeleteCustom={onDeleteCustomScript}
-                    onQuickLog={(strat, outcome) =>
-                      onOpenLogSheet({
-                        triggerId: 'overtired',
-                        strategyId: strat.id,
-                        strategyTitle: strat.title,
-                        outcome,
-                        wasTired: true,
-                        wasFlooded: false,
-                      })
-                    }
-                  />
-                ))}
-              </div>
-              <span className="section-label" style={{ marginTop: 4 }}>
-                Or pick a specific moment (shortened scripts ON)
-              </span>
-            </section>
-          )}
-
           {/* 8 Trigger Grid */}
           <div className="trigger-grid" role="list">
             {TRIGGERS.map((trigger) => {
               const count = triggerCounts[trigger.id] || 0;
+              const highlightOvertired = isTired && trigger.id === 'overtired';
               return (
                 <button
                   key={trigger.id}
                   type="button"
                   id={`trigger-${trigger.id}`}
                   className={`trigger-tile ${trigger.urgency === 'high' ? 'urgent' : ''}`}
+                  style={
+                    highlightOvertired
+                      ? { borderColor: 'var(--amber-600)', background: 'var(--amber-50)' }
+                      : undefined
+                  }
                   onClick={() => setSelectedTriggerId(trigger.id)}
                 >
                   <div className="trigger-tile-top">
@@ -235,7 +189,8 @@ export default function SosView({
                 stat={stat}
                 isTriggerSpecific={isTriggerSpecific}
                 isFav={isFav}
-                defaultLowWords={isTired || activeTrigger.defaultLowWords}
+                defaultLowWords={false}
+                showShortHint={isTired}
                 onToggleFav={onToggleFav}
                 onDeleteCustom={onDeleteCustomScript}
                 onQuickLog={(strat, outcome) =>

@@ -17,6 +17,7 @@ export default function StrategyCard({
   isTriggerSpecific = false,
   isFav = false,
   defaultLowWords = false,
+  showShortHint = false,
   onToggleFav,
   onQuickLog,
   onDeleteCustom = null,
@@ -27,6 +28,9 @@ export default function StrategyCard({
   useEffect(() => {
     setLowWordsMode(Boolean(defaultLowWords));
   }, [defaultLowWords]);
+
+  const hasShortVariant =
+    Boolean(strategy.scriptFlooded) && strategy.scriptFlooded !== strategy.scriptStandard;
 
   const activeScript = lowWordsMode
     ? strategy.scriptFlooded || strategy.scriptStandard
@@ -86,15 +90,8 @@ export default function StrategyCard({
       <div className="script-box">
         <div className="script-mode-row">
           <span className="script-mode-label">Say This</span>
-          {strategy.scriptFlooded && strategy.scriptFlooded !== strategy.scriptStandard && (
+          {hasShortVariant && (
             <div className="segmented-mini" role="group" aria-label="Script length">
-              <button
-                type="button"
-                className={lowWordsMode ? 'active' : ''}
-                onClick={() => setLowWordsMode(true)}
-              >
-                Fewest words
-              </button>
               <button
                 type="button"
                 className={!lowWordsMode ? 'active' : ''}
@@ -102,10 +99,32 @@ export default function StrategyCard({
               >
                 Full script
               </button>
+              <button
+                type="button"
+                className={lowWordsMode ? 'active' : ''}
+                onClick={() => setLowWordsMode(true)}
+              >
+                Fewest words
+              </button>
             </div>
           )}
         </div>
         <p className="script-quote">{formatScript(activeScript, childName)}</p>
+        {showShortHint && !lowWordsMode && hasShortVariant && (
+          <div
+            style={{
+              marginTop: 8,
+              paddingTop: 8,
+              borderTop: '1px dashed var(--border-soft)',
+              fontSize: '0.82rem',
+              color: 'var(--amber-700)',
+              lineHeight: 1.4,
+            }}
+          >
+            <strong>Low-battery short version:</strong>{' '}
+            {formatScript(strategy.scriptFlooded, childName)}
+          </div>
+        )}
       </div>
 
       {/* Body & Presence Cue — Always visible because body language matters most at age 4 */}
