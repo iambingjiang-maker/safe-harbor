@@ -59,7 +59,7 @@ export default function SosView({
           <div className="page-intro">
             <h1 className="page-title">What’s happening right now?</h1>
             <p className="page-subtitle">
-              Tap the closest moment for fast, calm scripts tailored to {profile.childName || 'Buddy'}.
+              Tap the closest moment for fast, calm scripts tailored to {profile.childName || 'Liam'}.
             </p>
           </div>
 
@@ -214,7 +214,7 @@ export default function SosView({
               <div>
                 <div className="winner-label" style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
                   <Sparkles size={13} />
-                  Works best for {profile.childName || 'Buddy'}
+                  Works best for {profile.childName || 'Liam'}
                   {isTired ? ' when tired' : ''}
                 </div>
                 <div className="winner-name">{bestForTrigger.strategy.title}</div>

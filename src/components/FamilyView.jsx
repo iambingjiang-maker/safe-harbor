@@ -1,15 +1,24 @@
 import { useState } from 'react';
 import {
   Check,
+  ChevronDown,
+  ChevronUp,
   Cloud,
   CloudOff,
   Copy,
   Download,
+  ExternalLink,
   Lock,
   RefreshCw,
   Trash2,
   Upload,
 } from 'lucide-react';
+import {
+  FAMILY_SHEET_URL,
+  getActiveSheetsConfig,
+  getEnvSheetsConfig,
+  saveRuntimeSheetsConfig,
+} from '../lib/sheetsSync';
 import {
   getActiveSupabaseConfig,
   getEnvSupabaseConfig,
@@ -27,6 +36,7 @@ export default function FamilyView({
   onSaveProfile,
   onLockApp,
   onManualSync,
+  onConnectSheets,
   onExportJson,
   onImportJson,
   onLoadSampleData,
@@ -34,16 +44,21 @@ export default function FamilyView({
 }) {
   const [parent1Name, setParent1Name] = useState(profile.parent1Name || 'Mom');
   const [parent2Name, setParent2Name] = useState(profile.parent2Name || 'Dad');
-  const [childName, setChildName] = useState(profile.childName || 'Buddy');
+  const [childName, setChildName] = useState(profile.childName || 'Liam');
   const [childAge, setChildAge] = useState(String(profile.childAge || 4));
   const [familyCode, setFamilyCode] = useState(profile.familyCode || 'our-family');
   const [parent1Pin, setParent1Pin] = useState(profile.parent1Pin || '0527');
-  const [parent2Pin, setParent2Pin] = useState(profile.parent2Pin || profile.pin || '1234');
+  const [parent2Pin, setParent2Pin] = useState(profile.parent2Pin || profile.pin || '0901');
+
+  const envSheetsCfg = getEnvSheetsConfig();
+  const activeSheetsCfg = getActiveSheetsConfig();
+  const [sheetsUrl, setSheetsUrl] = useState(activeSheetsCfg.url || '');
 
   const envCfg = getEnvSupabaseConfig();
   const activeCfg = getActiveSupabaseConfig();
   const [sbUrl, setSbUrl] = useState(activeCfg.url || '');
   const [sbKey, setSbKey] = useState(activeCfg.anonKey || '');
+  const [supabaseOpen, setSupabaseOpen] = useState(Boolean(activeCfg.source && !activeSheetsCfg.source));
   const [copiedCode, setCopiedCode] = useState(false);
 
   const handleProfileSubmit = (e) => {
@@ -61,9 +76,19 @@ export default function FamilyView({
       parent2Pin: cleanPin2,
       parent1Name: parent1Name.trim() || 'Mom',
       parent2Name: parent2Name.trim() || 'Dad',
-      childName: childName.trim() || 'Buddy',
+      childName: childName.trim() || 'Liam',
       childAge: Math.max(1, Math.min(18, Number(childAge) || 4)),
     });
+  };
+
+  const handleSaveSheets = (e) => {
+    e.preventDefault();
+    saveRuntimeSheetsConfig(sheetsUrl);
+    if (onConnectSheets) {
+      onConnectSheets();
+    } else {
+      onManualSync();
+    }
   };
 
   const handleSaveSupabase = (e) => {
@@ -103,14 +128,14 @@ export default function FamilyView({
       <div className="page-intro">
         <h1 className="page-title">Family & Sync</h1>
         <p className="page-subtitle">
-          Personalize names for every script and keep both phones synced in real time.
+          Personalize names for every script and keep both phones synced to your Google Sheet.
         </p>
       </div>
 
       {/* Family Profile & PIN */}
       <form className="surface-card" onSubmit={handleProfileSubmit}>
         <div className="section-header">
-          <span className="section-label">Family Names & PIN</span>
+          <span className="section-label">Family Names & PINs</span>
           <button
             type="button"
             className="btn-secondary"
@@ -156,7 +181,7 @@ export default function FamilyView({
               className="text-input"
               value={childName}
               onChange={(e) => setChildName(e.target.value)}
-              placeholder="Buddy"
+              placeholder="Liam"
             />
           </label>
           <label className="field-group">
@@ -180,7 +205,7 @@ export default function FamilyView({
               className="text-input"
               value={familyCode}
               onChange={(e) => setFamilyCode(e.target.value)}
-              placeholder="smith-family"
+              placeholder="our-family"
             />
             <button
               type="button"
@@ -218,7 +243,7 @@ export default function FamilyView({
               className="text-input"
               value={parent2Pin}
               onChange={(e) => setParent2Pin(e.target.value.replace(/\D/g, '').slice(0, 4))}
-              placeholder="1234"
+              placeholder="0901"
             />
           </label>
         </div>
@@ -228,10 +253,10 @@ export default function FamilyView({
         </button>
       </form>
 
-      {/* Supabase Cloud Sync Card */}
-      <form className="surface-card" onSubmit={handleSaveSupabase}>
+      {/* Google Sheets Cloud Sync Card (Primary) */}
+      <form className="surface-card" onSubmit={handleSaveSheets}>
         <div className="section-header">
-          <span className="section-label">Co-Parent Cloud Sync (Supabase)</span>
+          <span className="section-label">Google Sheet Cloud Sync</span>
           <span
             className={`meta-tag ${syncStatus === 'synced' ? 'helped' : syncStatus === 'error' ? 'warn' : 'tired'}`}
             style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}
@@ -243,46 +268,45 @@ export default function FamilyView({
                 ? 'Syncing…'
                 : syncStatus === 'error'
                   ? 'Sync error'
-                  : 'Local only'}
+                  : 'Not connected'}
           </span>
         </div>
 
         <p style={{ fontSize: '0.84rem', color: 'var(--ink-secondary)', lineHeight: 1.48 }}>
-          Connect a free Supabase project so every moment logged on {parent1Name}’s phone appears
-          instantly on {parent2Name}’s phone (as long as both use the same{' '}
-          <strong>Shared Family Code</strong> above).
+          Every moment logged on {parent1Name}’s or {parent2Name}’s phone saves safely to your
+          private <strong>Sturdy Data</strong> Google Sheet and stays synced across devices.
         </p>
 
-        {envCfg.source === 'env' ? (
+        <a
+          href={FAMILY_SHEET_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="btn-secondary"
+          style={{ textDecoration: 'none' }}
+        >
+          <ExternalLink size={15} />
+          Open “Sturdy Data” Google Sheet
+        </a>
+
+        {envSheetsCfg.source === 'env' && !sheetsUrl ? (
           <div className="reframe-banner">
-            <span className="reframe-kicker">Environment Connected</span>
+            <span className="reframe-kicker">Google Sheet Connected</span>
             <p style={{ fontSize: '0.84rem', color: 'var(--ink-secondary)' }}>
-              Supabase credentials are configured via Vercel environment variables.
+              Connected automatically to your family’s Google Sheet.
             </p>
           </div>
         ) : (
-          <>
-            <label className="field-group">
-              <span className="field-label">Supabase Project URL</span>
-              <input
-                type="url"
-                className="text-input"
-                placeholder="https://xxxxx.supabase.co"
-                value={sbUrl}
-                onChange={(e) => setSbUrl(e.target.value)}
-              />
-            </label>
-            <label className="field-group">
-              <span className="field-label">Supabase Publishable / Anon Key</span>
-              <input
-                type="password"
-                className="text-input"
-                placeholder="eyJhbGciOiJIUzI1NiIs..."
-                value={sbKey}
-                onChange={(e) => setSbKey(e.target.value)}
-              />
-            </label>
-          </>
+          <label className="field-group">
+            <span className="field-label">Apps Script Web App URL</span>
+            <input
+              id="settings-sheets-url"
+              type="url"
+              className="text-input"
+              placeholder="https://script.google.com/macros/s/.../exec"
+              value={sheetsUrl}
+              onChange={(e) => setSheetsUrl(e.target.value)}
+            />
+          </label>
         )}
 
         {syncError && (
@@ -292,24 +316,99 @@ export default function FamilyView({
         )}
 
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-          {envCfg.source !== 'env' && (
-            <button type="submit" className="btn-primary" style={{ flex: 1 }}>
-              Connect & Sync
-            </button>
-          )}
-          <button
-            type="button"
-            className="btn-secondary"
-            onClick={onManualSync}
-            style={{ flex: envCfg.source === 'env' ? 1 : undefined }}
-          >
+          <button type="submit" className="btn-primary" style={{ flex: 1 }}>
+            Connect & Sync
+          </button>
+          <button type="button" className="btn-secondary" onClick={onManualSync}>
             <RefreshCw size={15} />
             Sync Now
           </button>
         </div>
-
-        <div className="code-block">{QUICK_SQL_SNIPPET}</div>
       </form>
+
+      {/* Optional Alternative: Supabase Sync */}
+      <div className="surface-card" style={{ padding: '13px 15px' }}>
+        <button
+          type="button"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            width: '100%',
+            background: 'none',
+            border: 'none',
+            padding: 0,
+            cursor: 'pointer',
+            color: 'var(--ink-secondary)',
+          }}
+          onClick={() => setSupabaseOpen((o) => !o)}
+        >
+          <span className="section-label">Alternative: Supabase Sync</span>
+          {supabaseOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+        </button>
+
+        {supabaseOpen && (
+          <form
+            onSubmit={handleSaveSupabase}
+            style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 12 }}
+          >
+            <p style={{ fontSize: '0.82rem', color: 'var(--ink-secondary)', lineHeight: 1.48 }}>
+              Optional alternative if you ever switch from Google Sheets to a Supabase database.
+            </p>
+
+            {envCfg.source === 'env' ? (
+              <div className="reframe-banner">
+                <span className="reframe-kicker">Environment Connected</span>
+                <p style={{ fontSize: '0.84rem', color: 'var(--ink-secondary)' }}>
+                  Supabase credentials are configured via environment variables.
+                </p>
+              </div>
+            ) : (
+              <>
+                <label className="field-group">
+                  <span className="field-label">Supabase Project URL</span>
+                  <input
+                    type="url"
+                    className="text-input"
+                    placeholder="https://xxxxx.supabase.co"
+                    value={sbUrl}
+                    onChange={(e) => setSbUrl(e.target.value)}
+                  />
+                </label>
+                <label className="field-group">
+                  <span className="field-label">Supabase Publishable / Anon Key</span>
+                  <input
+                    type="password"
+                    className="text-input"
+                    placeholder="eyJhbGciOiJIUzI1NiIs..."
+                    value={sbKey}
+                    onChange={(e) => setSbKey(e.target.value)}
+                  />
+                </label>
+              </>
+            )}
+
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              {envCfg.source !== 'env' && (
+                <button type="submit" className="btn-primary" style={{ flex: 1 }}>
+                  Connect Supabase
+                </button>
+              )}
+              <button
+                type="button"
+                className="btn-secondary"
+                onClick={onManualSync}
+                style={{ flex: envCfg.source === 'env' ? 1 : undefined }}
+              >
+                <RefreshCw size={15} />
+                Sync Now
+              </button>
+            </div>
+
+            <div className="code-block">{QUICK_SQL_SNIPPET}</div>
+          </form>
+        )}
+      </div>
 
       {/* Data Backup & Demo Controls */}
       <section className="surface-card">

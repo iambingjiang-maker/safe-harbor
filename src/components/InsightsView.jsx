@@ -42,7 +42,7 @@ export default function InsightsView({
         <div className="page-intro">
           <h1 className="page-title">Log & Insights</h1>
           <p className="page-subtitle">
-            What actually works for {profile.childName || 'Buddy'} across both parents.
+            What actually works for {profile.childName || 'Liam'} across both parents.
           </p>
         </div>
         <button
@@ -64,7 +64,7 @@ export default function InsightsView({
           <p className="empty-sub">
             After a tough moment, tap <strong>Helped</strong>, <strong>Somewhat</strong>, or{' '}
             <strong>Escalated</strong> on any strategy. Over just a few days, Sturdy learns what calms{' '}
-            {profile.childName || 'Buddy'} fastest—especially when he’s tired or testing boundaries.
+            {profile.childName || 'Liam'} fastest—especially when he’s tired or testing boundaries.
           </p>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'center', marginTop: 6 }}>
             <button
@@ -137,7 +137,7 @@ export default function InsightsView({
             <section className="surface-card">
               <div className="section-header">
                 <span className="section-label">
-                  What Works Best for {profile.childName || 'Buddy'}
+                  What Works Best for {profile.childName || 'Liam'}
                 </span>
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>

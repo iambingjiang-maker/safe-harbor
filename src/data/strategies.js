@@ -600,7 +600,7 @@ export const CORE_PILLARS = [
 
 export function formatScript(text, childName) {
   if (!text) return '';
-  const name = (childName || 'Buddy').trim() || 'Buddy';
+  const name = (childName || 'Liam').trim() || 'Liam';
   return text.replace(/\{child\}/g, name);
 }
 

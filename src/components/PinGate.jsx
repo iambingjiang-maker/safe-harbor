@@ -17,9 +17,8 @@ export default function PinGate({
       : profile.parent1Name || 'Mom';
   const expectedPin =
     activeParentSlot === 'parent2'
-      ? profile.parent2Pin || profile.pin || '1234'
+      ? profile.parent2Pin || profile.pin || '0901'
       : profile.parent1Pin || '0527';
-  const showDefaultHint = activeParentSlot === 'parent2' && expectedPin === '1234';
 
   const handleSelectSlot = (slot) => {
     setDigits('');
@@ -60,7 +59,7 @@ export default function PinGate({
           <img src="./icon.svg" alt="Sturdy emblem" className="pin-logo" />
           <h1 className="page-title">Sturdy</h1>
           <p className="page-subtitle">
-            Good Inside companion for {profile.childName || 'Buddy'} ({profile.childAge || 4})
+            Good Inside companion for {profile.childName || 'Liam'} ({profile.childAge || 4})
           </p>
 
           <div style={{ marginTop: 8, width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
@@ -99,15 +98,11 @@ export default function PinGate({
                 />
               ))}
             </div>
-            {error ? (
+            {error && (
               <p style={{ fontSize: '0.8rem', color: 'var(--terra-600)', marginTop: 4 }}>
                 Incorrect PIN — try again
               </p>
-            ) : showDefaultHint ? (
-              <p style={{ fontSize: '0.78rem', color: 'var(--ink-muted)', marginTop: 4 }}>
-                Default PIN is <strong>1234</strong> (change anytime in Family Settings)
-              </p>
-            ) : null}
+            )}
           </div>
 
           <div className="pin-keypad">

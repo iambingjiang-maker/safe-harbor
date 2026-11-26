@@ -201,7 +201,7 @@ export default function LibraryView({
         <div className="empty-state">
           <div className="empty-title">No matching scripts</div>
           <p className="empty-sub">
-            Try clearing your search, or save a custom script that works well for {profile.childName || 'Buddy'}.
+            Try clearing your search, or save a custom script that works well for {profile.childName || 'Liam'}.
           </p>
           <button
             type="button"
@@ -262,7 +262,7 @@ export default function LibraryView({
 
             <p style={{ fontSize: '0.84rem', color: 'var(--ink-secondary)' }}>
               Save a phrase, playful game, or boundary script that works uniquely well for{' '}
-              {profile.childName || 'Buddy'}. Both parents will see it in SOS mode.
+              {profile.childName || 'Liam'}. Both parents will see it in SOS mode.
             </p>
 
             <label className="field-group">

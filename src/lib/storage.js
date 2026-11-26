@@ -1,18 +1,25 @@
-import { getSupabaseClient } from './supabase';
+import { getActiveSupabaseConfig, getSupabaseClient } from './supabase';
+import { getActiveSheetsConfig, sheetsGet, sheetsPost } from './sheetsSync';
 
 const LOCAL_STATE_KEY = 'sturdy_family_state_v1';
 const DEVICE_PREFS_KEY = 'sturdy_device_prefs_v1';
 
 export const DEFAULT_PROFILE = {
   familyCode: 'our-family',
-  pin: '1234',
+  pin: '0901',
   parent1Pin: '0527',
-  parent2Pin: '1234',
+  parent2Pin: '0901',
   parent1Name: 'Mom',
   parent2Name: 'Dad',
-  childName: 'Buddy',
+  childName: 'Liam',
   childAge: 4,
 };
+
+export function getActiveCloudProvider() {
+  if (getActiveSheetsConfig().source) return 'sheets';
+  if (getActiveSupabaseConfig().source) return 'supabase';
+  return null;
+}
 
 export function loadLocalState() {
   try {
@@ -27,12 +34,20 @@ export function loadLocalState() {
     }
     const parsed = JSON.parse(raw);
     const savedProfile = parsed.profile || {};
+    const migratedChildName =
+      !savedProfile.childName || savedProfile.childName === 'Buddy'
+        ? DEFAULT_PROFILE.childName
+        : savedProfile.childName;
+    const rawP2Pin = savedProfile.parent2Pin || savedProfile.pin;
+    const migratedP2Pin = !rawP2Pin || rawP2Pin === '1234' ? DEFAULT_PROFILE.parent2Pin : rawP2Pin;
     return {
       profile: {
         ...DEFAULT_PROFILE,
         ...savedProfile,
+        childName: migratedChildName,
         parent1Pin: savedProfile.parent1Pin || DEFAULT_PROFILE.parent1Pin,
-        parent2Pin: savedProfile.parent2Pin || savedProfile.pin || DEFAULT_PROFILE.parent2Pin,
+        parent2Pin: migratedP2Pin,
+        pin: migratedP2Pin,
       },
       logs: Array.isArray(parsed.logs) ? parsed.logs : [],
       customScripts: Array.isArray(parsed.customScripts) ? parsed.customScripts : [],
@@ -159,11 +174,30 @@ function mapScriptToDb(script, familyCode) {
   };
 }
 
-// ── Cloud sync helpers (gracefully no-op when Supabase is not configured) ──
+// ── Cloud sync helpers (Google Sheets primary, Supabase optional fallback) ──
 
 export async function pullFamilyFromCloud(familyCode, fallbackProfile) {
+  const provider = getActiveCloudProvider();
+  if (!provider) return { connected: false, provider: null };
+
+  if (provider === 'sheets') {
+    const data = await sheetsGet();
+    return {
+      connected: true,
+      provider: 'sheets',
+      profile: {
+        ...DEFAULT_PROFILE,
+        ...(fallbackProfile || {}),
+        ...(data.profile || {}),
+      },
+      logs: Array.isArray(data.logs) ? data.logs : [],
+      customScripts: Array.isArray(data.customScripts) ? data.customScripts : [],
+      favorites: Array.isArray(data.favorites) ? data.favorites : [],
+    };
+  }
+
   const supabase = getSupabaseClient();
-  if (!supabase) return { connected: false };
+  if (!supabase) return { connected: false, provider: null };
 
   const code = (familyCode || 'our-family').trim().toLowerCase();
 
@@ -179,12 +213,12 @@ export async function pullFamilyFromCloud(familyCode, fallbackProfile) {
   if (!familyRow) {
     const insertPayload = {
       family_code: code,
-      pin: fallbackProfile.parent2Pin || fallbackProfile.pin || '1234',
+      pin: fallbackProfile.parent2Pin || fallbackProfile.pin || '0901',
       parent1_pin: fallbackProfile.parent1Pin || '0527',
-      parent2_pin: fallbackProfile.parent2Pin || fallbackProfile.pin || '1234',
+      parent2_pin: fallbackProfile.parent2Pin || fallbackProfile.pin || '0901',
       parent1_name: fallbackProfile.parent1Name || 'Mom',
       parent2_name: fallbackProfile.parent2Name || 'Dad',
-      child_name: fallbackProfile.childName || 'Buddy',
+      child_name: fallbackProfile.childName || 'Liam',
       child_age: fallbackProfile.childAge || 4,
     };
     const { data: created, error: createErr } = await supabase
@@ -220,11 +254,12 @@ export async function pullFamilyFromCloud(familyCode, fallbackProfile) {
 
   return {
     connected: true,
+    provider: 'supabase',
     profile: {
       familyCode: familyRow.family_code,
-      pin: familyRow.pin || familyRow.parent2_pin || '1234',
+      pin: familyRow.pin || familyRow.parent2_pin || '0901',
       parent1Pin: familyRow.parent1_pin || fallbackProfile.parent1Pin || '0527',
-      parent2Pin: familyRow.parent2_pin || familyRow.pin || fallbackProfile.parent2Pin || '1234',
+      parent2Pin: familyRow.parent2_pin || familyRow.pin || fallbackProfile.parent2Pin || '0901',
       parent1Name: familyRow.parent1_name,
       parent2Name: familyRow.parent2_name,
       childName: familyRow.child_name,
@@ -236,15 +271,44 @@ export async function pullFamilyFromCloud(familyCode, fallbackProfile) {
   };
 }
 
+export async function pushBulkToCloud(localState) {
+  if (getActiveCloudProvider() !== 'sheets') return null;
+  const data = await sheetsPost({
+    action: 'pushBulk',
+    logs: localState.logs || [],
+    customScripts: localState.customScripts || [],
+    favorites: localState.favorites || [],
+  });
+  return {
+    connected: true,
+    provider: 'sheets',
+    profile: {
+      ...DEFAULT_PROFILE,
+      ...(localState.profile || {}),
+      ...(data.profile || {}),
+    },
+    logs: Array.isArray(data.logs) ? data.logs : [],
+    customScripts: Array.isArray(data.customScripts) ? data.customScripts : [],
+    favorites: Array.isArray(data.favorites) ? data.favorites : [],
+  };
+}
+
 export async function pushProfileToCloud(profile) {
+  const provider = getActiveCloudProvider();
+  if (!provider) return false;
+  if (provider === 'sheets') {
+    await sheetsPost({ action: 'pushProfile', profile });
+    return true;
+  }
+
   const supabase = getSupabaseClient();
   if (!supabase) return false;
   const code = (profile.familyCode || 'our-family').trim().toLowerCase();
   const { error } = await supabase.from('families').upsert({
     family_code: code,
-    pin: profile.parent2Pin || profile.pin || '1234',
+    pin: profile.parent2Pin || profile.pin || '0901',
     parent1_pin: profile.parent1Pin || '0527',
-    parent2_pin: profile.parent2Pin || profile.pin || '1234',
+    parent2_pin: profile.parent2Pin || profile.pin || '0901',
     parent1_name: profile.parent1Name,
     parent2_name: profile.parent2Name,
     child_name: profile.childName,
@@ -256,6 +320,13 @@ export async function pushProfileToCloud(profile) {
 }
 
 export async function pushLogToCloud(log, familyCode) {
+  const provider = getActiveCloudProvider();
+  if (!provider) return false;
+  if (provider === 'sheets') {
+    await sheetsPost({ action: 'pushLog', log });
+    return true;
+  }
+
   const supabase = getSupabaseClient();
   if (!supabase) return false;
   const code = (familyCode || 'our-family').trim().toLowerCase();
@@ -265,6 +336,13 @@ export async function pushLogToCloud(log, familyCode) {
 }
 
 export async function deleteLogFromCloud(logId, familyCode) {
+  const provider = getActiveCloudProvider();
+  if (!provider) return false;
+  if (provider === 'sheets') {
+    await sheetsPost({ action: 'deleteLog', logId });
+    return true;
+  }
+
   const supabase = getSupabaseClient();
   if (!supabase) return false;
   const code = (familyCode || 'our-family').trim().toLowerCase();
@@ -278,6 +356,13 @@ export async function deleteLogFromCloud(logId, familyCode) {
 }
 
 export async function pushCustomScriptToCloud(script, familyCode) {
+  const provider = getActiveCloudProvider();
+  if (!provider) return false;
+  if (provider === 'sheets') {
+    await sheetsPost({ action: 'pushScript', script });
+    return true;
+  }
+
   const supabase = getSupabaseClient();
   if (!supabase) return false;
   const code = (familyCode || 'our-family').trim().toLowerCase();
@@ -289,6 +374,13 @@ export async function pushCustomScriptToCloud(script, familyCode) {
 }
 
 export async function deleteCustomScriptFromCloud(scriptId, familyCode) {
+  const provider = getActiveCloudProvider();
+  if (!provider) return false;
+  if (provider === 'sheets') {
+    await sheetsPost({ action: 'deleteScript', scriptId });
+    return true;
+  }
+
   const supabase = getSupabaseClient();
   if (!supabase) return false;
   const code = (familyCode || 'our-family').trim().toLowerCase();
@@ -302,6 +394,13 @@ export async function deleteCustomScriptFromCloud(scriptId, familyCode) {
 }
 
 export async function syncFavoriteToCloud(strategyId, isFav, familyCode) {
+  const provider = getActiveCloudProvider();
+  if (!provider) return false;
+  if (provider === 'sheets') {
+    await sheetsPost({ action: 'syncFavorite', strategyId, isFav });
+    return true;
+  }
+
   const supabase = getSupabaseClient();
   if (!supabase) return false;
   const code = (familyCode || 'our-family').trim().toLowerCase();
@@ -322,6 +421,18 @@ export async function syncFavoriteToCloud(strategyId, isFav, familyCode) {
 }
 
 export function subscribeToFamilyRealtime(familyCode, onChange) {
+  const provider = getActiveCloudProvider();
+  if (!provider) return () => {};
+
+  if (provider === 'sheets') {
+    const interval = setInterval(() => {
+      if (document.visibilityState === 'visible') {
+        onChange();
+      }
+    }, 30000);
+    return () => clearInterval(interval);
+  }
+
   const supabase = getSupabaseClient();
   if (!supabase) return () => {};
   const code = (familyCode || 'our-family').trim().toLowerCase();

@@ -10,9 +10,11 @@ import { STRATEGIES, createSampleLogs } from './data/strategies';
 import {
   deleteCustomScriptFromCloud,
   deleteLogFromCloud,
+  getActiveCloudProvider,
   loadDevicePrefs,
   loadLocalState,
   pullFamilyFromCloud,
+  pushBulkToCloud,
   pushCustomScriptToCloud,
   pushLogToCloud,
   pushProfileToCloud,
@@ -21,7 +23,6 @@ import {
   subscribeToFamilyRealtime,
   syncFavoriteToCloud,
 } from './lib/storage';
-import { getActiveSupabaseConfig } from './lib/supabase';
 import PinGate from './components/PinGate';
 import SosView from './components/SosView';
 import LibraryView from './components/LibraryView';
@@ -36,7 +37,7 @@ export default function App() {
   const [activeTab, setActiveTab] = useState('sos'); // 'sos' | 'library' | 'insights' | 'family'
   const [logSheetData, setLogSheetData] = useState(null);
   const [syncStatus, setSyncStatus] = useState(() =>
-    getActiveSupabaseConfig().source ? 'syncing' : 'local'
+    getActiveCloudProvider() ? 'syncing' : 'local'
   );
   const [syncError, setSyncError] = useState('');
   const [toast, setToast] = useState('');
@@ -59,6 +60,10 @@ export default function App() {
   }, [devicePrefs]);
 
   const { profile, logs, customScripts, favorites } = familyState;
+  const latestStateRef = useRef(familyState);
+  useEffect(() => {
+    latestStateRef.current = familyState;
+  }, [familyState]);
 
   const activeParentName =
     devicePrefs.activeParentSlot === 'parent2'
@@ -70,11 +75,11 @@ export default function App() {
     [customScripts]
   );
 
-  // Pull from Supabase cloud if configured
+  // Pull from Google Sheets (or Supabase fallback) if configured
   const syncFromCloud = useCallback(
-    async ({ silent = false } = {}) => {
-      const cfg = getActiveSupabaseConfig();
-      if (!cfg.source) {
+    async ({ silent = false, pushLocalFirst = false } = {}) => {
+      const provider = getActiveCloudProvider();
+      if (!provider) {
         setSyncStatus('local');
         setSyncError('');
         return;
@@ -83,8 +88,14 @@ export default function App() {
       setSyncStatus('syncing');
       setSyncError('');
       try {
-        const result = await pullFamilyFromCloud(profile.familyCode, profile);
-        if (result.connected) {
+        const current = latestStateRef.current;
+        const result =
+          pushLocalFirst &&
+          provider === 'sheets' &&
+          (current.logs.length > 0 || current.customScripts.length > 0)
+            ? await pushBulkToCloud(current)
+            : await pullFamilyFromCloud(current.profile.familyCode, current.profile);
+        if (result && result.connected) {
           setFamilyState((prev) => ({
             profile: result.profile || prev.profile,
             logs: result.logs,
@@ -92,21 +103,27 @@ export default function App() {
             favorites: result.favorites.length > 0 ? result.favorites : prev.favorites,
           }));
           setSyncStatus('synced');
-          if (!silent) showToast('Synced with family cloud');
+          if (!silent) {
+            showToast(
+              result.provider === 'sheets'
+                ? 'Synced with Sturdy Data Google Sheet'
+                : 'Synced with family cloud'
+            );
+          }
         } else {
           setSyncStatus('local');
         }
       } catch (err) {
         setSyncStatus('error');
-        setSyncError(err?.message || 'Could not reach Supabase');
+        setSyncError(err?.message || 'Could not reach cloud sync');
       }
     },
-    [profile.familyCode, profile.pin, profile.parent1Pin, profile.parent2Pin, profile.parent1Name, profile.parent2Name, profile.childName, profile.childAge, showToast]
+    [showToast]
   );
 
-  // Initial pull & realtime subscription
+  // Initial pull, background polling / realtime subscription, and iOS resume sync
   useEffect(() => {
-    if (!getActiveSupabaseConfig().source) return;
+    if (!getActiveCloudProvider()) return;
     syncFromCloud({ silent: true });
 
     const unsub = subscribeToFamilyRealtime(profile.familyCode, () => {
@@ -114,11 +131,18 @@ export default function App() {
     });
 
     const handleFocus = () => syncFromCloud({ silent: true });
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        syncFromCloud({ silent: true });
+      }
+    };
     window.addEventListener('focus', handleFocus);
+    document.addEventListener('visibilitychange', handleVisibility);
 
     return () => {
       unsub();
       window.removeEventListener('focus', handleFocus);
+      document.removeEventListener('visibilitychange', handleVisibility);
     };
   }, [profile.familyCode, syncFromCloud]);
 
@@ -298,7 +322,7 @@ export default function App() {
                   }`}
                 />
                 <span>
-                  {profile.childName || 'Buddy'} ({profile.childAge || 4}) ·{' '}
+                  {profile.childName || 'Liam'} ({profile.childAge || 4}) ·{' '}
                   {syncStatus === 'synced'
                     ? 'Synced'
                     : syncStatus === 'syncing'
@@ -380,6 +404,7 @@ export default function App() {
               onSaveProfile={handleSaveProfile}
               onLockApp={handleLockApp}
               onManualSync={() => syncFromCloud({ silent: false })}
+              onConnectSheets={() => syncFromCloud({ silent: false, pushLocalFirst: true })}
               onExportJson={handleExportJson}
               onImportJson={handleImportJson}
               onLoadSampleData={handleLoadSampleData}
