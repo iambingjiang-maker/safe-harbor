@@ -69,8 +69,8 @@ export default function SosView({
                 <div className="modifier-title">He’s tired / low battery</div>
                 <div className="modifier-desc">
                   {isTired
-                    ? 'ON — boosts tired-friendly scripts & adds short cues'
-                    : 'Prioritizes tired-friendly scripts & lower demands'}
+                    ? 'ON — tiles show short scripts; tap any for full scripts'
+                    : 'Tap to switch tiles to short low-battery scripts'}
                 </div>
               </div>
             </div>
@@ -83,7 +83,6 @@ export default function SosView({
           <div className="trigger-grid" role="list">
             {TRIGGERS.map((trigger) => {
               const count = triggerCounts[trigger.id] || 0;
-              const highlightOvertired = isTired && trigger.id === 'overtired';
               return (
                 <button
                   key={trigger.id}
@@ -91,8 +90,17 @@ export default function SosView({
                   id={`trigger-${trigger.id}`}
                   className={`trigger-tile ${trigger.urgency === 'high' ? 'urgent' : ''}`}
                   style={
-                    highlightOvertired
-                      ? { borderColor: 'var(--amber-600)', background: 'var(--amber-50)' }
+                    isTired
+                      ? {
+                          borderColor:
+                            trigger.id === 'overtired'
+                              ? 'var(--amber-600)'
+                              : 'rgba(180, 120, 40, 0.35)',
+                          background:
+                            trigger.id === 'overtired'
+                              ? 'var(--amber-50)'
+                              : '#FFFDF8',
+                        }
                       : undefined
                   }
                   onClick={() => setSelectedTriggerId(trigger.id)}
@@ -103,7 +111,18 @@ export default function SosView({
                       <span className="trigger-count-pill">{count}</span>
                     )}
                   </div>
-                  <span className="trigger-tile-sub">{trigger.subtitle}</span>
+                  <span
+                    className="trigger-tile-sub"
+                    style={
+                      isTired
+                        ? { color: 'var(--amber-700)', fontWeight: 500 }
+                        : undefined
+                    }
+                  >
+                    {isTired && trigger.tiredScript
+                      ? formatScript(trigger.tiredScript, profile.childName)
+                      : trigger.subtitle}
+                  </span>
                 </button>
               );
             })}

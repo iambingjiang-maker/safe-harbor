@@ -12,6 +12,7 @@ export const TRIGGERS = [
     label: "Flooded / Can't Hear Us",
     shortLabel: 'Flooded',
     subtitle: 'Crying hard, screaming, zero-to-60 — logic won’t land',
+    tiredScript: '“{child}, you’re safe. I’m right here.”',
     reframe:
       'His nervous system is flooded with cortisol and his thinking brain is temporarily offline. Connection and calm presence come first; words and lessons come later.',
     defaultLowWords: true,
@@ -22,6 +23,7 @@ export const TRIGGERS = [
     label: 'Testing Boundaries',
     shortLabel: 'Boundaries',
     subtitle: 'Pushing limits, saying "No!", ignoring requests',
+    tiredScript: '“I hear ‘no.’ I’m going to help your body now.”',
     reframe:
       'Boundary testing at 4 is not defiance—it is your child checking: "Are you sturdy enough to hold the wall when I feel big and wild?"',
     defaultLowWords: false,
@@ -32,6 +34,7 @@ export const TRIGGERS = [
     label: 'Angry / Physical Urges',
     shortLabel: 'Physical',
     subtitle: 'Hitting, kicking, throwing, slamming doors',
+    tiredScript: '“I won’t let you hit. I’m keeping us safe.”',
     reframe:
       'Aggression is a fear-and-cortisol surge, not a bad kid. Stopping his body calmly protects him from shame and teaches him you will keep everyone safe.',
     defaultLowWords: true,
@@ -42,6 +45,7 @@ export const TRIGGERS = [
     label: 'Escalates When We Talk',
     shortLabel: 'Talk Backfires',
     subtitle: 'Validating or reasoning makes him angrier ("Deeply Feeling" mode)',
+    tiredScript: '“No talking right now. I’m right here.”',
     reframe:
       'Some deeply feeling 4-year-olds feel exposed and shamed when feelings are narrated mid-storm. Drop the words and become a quiet, steady anchor.',
     defaultLowWords: true,
@@ -52,6 +56,7 @@ export const TRIGGERS = [
     label: 'Overtired Crash',
     shortLabel: 'Overtired',
     subtitle: 'End-of-day collapse, tiny trigger → massive explosion',
+    tiredScript: '“Your battery is empty. I’ve got you—let’s rest.”',
     reframe:
       'An overtired 4-year-old has zero emotional buffer left. Drop non-essential demands, lend him your calm nervous system, and get through the evening safely.',
     defaultLowWords: true,
@@ -62,6 +67,7 @@ export const TRIGGERS = [
     label: 'Transition Meltdown',
     shortLabel: 'Transitions',
     subtitle: 'Ending screens, leaving the park, bedtime, getting dressed',
+    tiredScript: '“Time to go—walk or piggyback?”',
     reframe:
       'Switching gears requires executive function that 4-year-olds are still building. Joining his world briefly—then holding the boundary—reduces the shock.',
     defaultLowWords: false,
@@ -72,6 +78,7 @@ export const TRIGGERS = [
     label: 'Frustrated / Stuck',
     shortLabel: 'Frustrated',
     subtitle: '"I can’t do it!", perfectionism, plan changed',
+    tiredScript: '“So hard when you’re tired. Let’s do one tiny step together.”',
     reframe:
       'He is in the "learning space," where not knowing yet feels scary. Stay beside him in the frustration without rushing to fix or dismiss it.',
     defaultLowWords: false,
@@ -82,6 +89,7 @@ export const TRIGGERS = [
     label: 'Sharing / Waiting',
     shortLabel: 'Sharing',
     subtitle: 'Sibling conflict, taking turns, fairness battles',
+    tiredScript: '“My hands keep everyone safe. Your turn is next.”',
     reframe:
       'At 4, impulse control is tiny and desires feel urgent. Sportscast what you see neutrally, hold safety, and protect turns rather than forcing fake generosity.',
     defaultLowWords: false,
