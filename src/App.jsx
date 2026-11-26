@@ -11,6 +11,7 @@ import {
   deleteCustomScriptFromCloud,
   deleteLogFromCloud,
   getActiveCloudProvider,
+  getChildrenList,
   loadDevicePrefs,
   loadLocalState,
   pullFamilyFromCloud,
@@ -64,6 +65,24 @@ export default function App() {
   useEffect(() => {
     latestStateRef.current = familyState;
   }, [familyState]);
+
+  const childrenList = useMemo(() => getChildrenList(profile), [profile]);
+  const activeChild = useMemo(
+    () => childrenList.find((c) => c.id === devicePrefs.activeChildId) || childrenList[0],
+    [childrenList, devicePrefs.activeChildId]
+  );
+  const activeChildProfile = useMemo(
+    () => ({
+      ...profile,
+      childName: activeChild.name,
+      childAge: activeChild.age,
+    }),
+    [profile, activeChild]
+  );
+  const activeChildLogs = useMemo(
+    () => logs.filter((l) => (l.childId || 'child1') === activeChild.id),
+    [logs, activeChild.id]
+  );
 
   const activeParentName =
     devicePrefs.activeParentSlot === 'parent2'
@@ -163,6 +182,14 @@ export default function App() {
       nextSlot === 'parent2' ? profile.parent2Name || 'Dad' : profile.parent1Name || 'Mom';
     setDevicePrefs((prev) => ({ ...prev, activeParentSlot: nextSlot }));
     showToast(`Active parent: ${nextName}`);
+  };
+
+  const handleSwitchChild = () => {
+    if (childrenList.length < 2) return;
+    const idx = childrenList.findIndex((c) => c.id === activeChild.id);
+    const next = childrenList[(idx + 1) % childrenList.length];
+    setDevicePrefs((prev) => ({ ...prev, activeChildId: next.id }));
+    showToast(`Switched to ${next.name} (${next.age})`);
   };
 
   const handleSaveLog = async (newLog) => {
@@ -321,8 +348,33 @@ export default function App() {
                         : 'local'
                   }`}
                 />
+                {childrenList.length > 1 ? (
+                  <button
+                    type="button"
+                    id="header-child-switcher"
+                    onClick={handleSwitchChild}
+                    title="Tap to switch child"
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      padding: 0,
+                      font: 'inherit',
+                      color: 'inherit',
+                      cursor: 'pointer',
+                      textDecoration: 'underline',
+                      textDecorationStyle: 'dotted',
+                      textUnderlineOffset: 2,
+                    }}
+                  >
+                    {activeChild.name} ({activeChild.age})
+                  </button>
+                ) : (
+                  <span>
+                    {activeChild.name} ({activeChild.age})
+                  </span>
+                )}
                 <span>
-                  {profile.childName || 'Liam'} ({profile.childAge || 4}) ·{' '}
+                  ·{' '}
                   {syncStatus === 'synced'
                     ? 'Synced'
                     : syncStatus === 'syncing'
@@ -361,25 +413,29 @@ export default function App() {
         <main className="app-main">
           {activeTab === 'sos' && (
             <SosView
-              profile={profile}
+              profile={activeChildProfile}
               allStrategies={allStrategies}
-              logs={logs}
+              logs={activeChildLogs}
               favorites={favorites}
               onToggleFav={handleToggleFav}
-              onOpenLogSheet={(data) => setLogSheetData(data)}
+              onOpenLogSheet={(data) =>
+                setLogSheetData({ ...data, childId: activeChild.id })
+              }
               onDeleteCustomScript={handleDeleteCustomScript}
             />
           )}
 
           {activeTab === 'library' && (
             <LibraryView
-              profile={profile}
+              profile={activeChildProfile}
               activeParentName={activeParentName}
               allStrategies={allStrategies}
-              logs={logs}
+              logs={activeChildLogs}
               favorites={favorites}
               onToggleFav={handleToggleFav}
-              onOpenLogSheet={(data) => setLogSheetData(data)}
+              onOpenLogSheet={(data) =>
+                setLogSheetData({ ...data, childId: activeChild.id })
+              }
               onAddCustomScript={handleAddCustomScript}
               onDeleteCustomScript={handleDeleteCustomScript}
             />
@@ -388,6 +444,8 @@ export default function App() {
           {activeTab === 'insights' && (
             <InsightsView
               profile={profile}
+              childrenList={childrenList}
+              activeChild={activeChild}
               logs={logs}
               onOpenLogSheet={(data) => setLogSheetData(data)}
               onDeleteLog={handleDeleteLog}
@@ -459,6 +517,8 @@ export default function App() {
             initialData={logSheetData}
             allStrategies={allStrategies}
             profile={profile}
+            childrenList={childrenList}
+            activeChild={activeChild}
             activeParentName={activeParentName}
             onSave={handleSaveLog}
             onClose={() => setLogSheetData(null)}

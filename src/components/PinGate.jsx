@@ -59,7 +59,8 @@ export default function PinGate({
           <img src="./icon.svg" alt="Sturdy emblem" className="pin-logo" />
           <h1 className="page-title">Sturdy</h1>
           <p className="page-subtitle">
-            Good Inside companion for {profile.childName || 'Liam'} ({profile.childAge || 4})
+            Good Inside companion for {profile.childName || 'Liam'}
+            {profile.child2Name ? ` & ${profile.child2Name}` : ` (${profile.childAge || 4})`}
           </p>
 
           <div style={{ marginTop: 8, width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>

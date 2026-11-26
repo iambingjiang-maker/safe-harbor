@@ -1,6 +1,7 @@
 /**
  * Sturdy — Good Inside Family Companion
  * Google Sheets Cloud Sync Backend (Google Apps Script)
+ * Supports both boys (Liam & Arlo) with per-child logging & insights.
  *
  * SETUP (one-time, ~2 minutes):
  * 1. Open your "Sturdy Data" Google Sheet.
@@ -30,6 +31,8 @@ const TABS = {
       'was_flooded',
       'context_tags',
       'notes',
+      'child_id',
+      'child_name',
     ],
   },
   scripts: {
@@ -44,6 +47,7 @@ const TABS = {
       'script_standard',
       'body_action',
       'avoid_tip',
+      'child_id',
     ],
   },
   favorites: {
@@ -107,7 +111,9 @@ function readAllData_() {
     parent2Pin: formatPin_(profileMap.parent2Pin, '0901'),
     pin: formatPin_(profileMap.parent2Pin, '0901'),
     childName: String(profileMap.childName || 'Liam').trim(),
-    childAge: Number(profileMap.childAge) || 4,
+    childAge: String(profileMap.childAge || '4').trim(),
+    child2Name: String(profileMap.child2Name || 'Arlo').trim(),
+    child2Age: String(profileMap.child2Age || '1y 3m').trim(),
   };
 
   // 2. Moments
@@ -129,6 +135,8 @@ function readAllData_() {
           .filter(Boolean);
       }
     }
+    const childId = String(r[11] || 'child1').trim() || 'child1';
+    const fallbackChildName = childId === 'child2' ? profile.child2Name : profile.childName;
     logs.push({
       id: String(r[0]),
       createdAt: r[1] instanceof Date ? r[1].toISOString() : String(r[1] || ''),
@@ -141,6 +149,8 @@ function readAllData_() {
       wasFlooded: toBool_(r[8]),
       contextTags: tags,
       notes: String(r[10] || ''),
+      childId: childId,
+      childName: String(r[12] || fallbackChildName).trim(),
     });
   }
   logs.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
@@ -172,6 +182,7 @@ function readAllData_() {
       scriptStandard: scriptStandard,
       bodyAction: String(r[7] || ''),
       avoid: avoidTip ? [avoidTip] : [],
+      childId: String(r[9] || 'all').trim() || 'all',
       isCustom: true,
     });
   }
@@ -218,7 +229,9 @@ function saveProfile_(profile) {
     ['parent1Pin', "'" + formatPin_(profile.parent1Pin, '0527')],
     ['parent2Pin', "'" + formatPin_(profile.parent2Pin || profile.pin, '0901')],
     ['childName', String(profile.childName || 'Liam').trim()],
-    ['childAge', Number(profile.childAge) || 4],
+    ['childAge', String(profile.childAge || '4').trim()],
+    ['child2Name', String(profile.child2Name || 'Arlo').trim()],
+    ['child2Age', String(profile.child2Age || '1y 3m').trim()],
   ];
   for (let i = 0; i < entries.length; i++) {
     upsertRowById_(sheet, entries[i][0], entries[i]);
@@ -239,6 +252,8 @@ function saveLog_(log) {
     Boolean(log.wasFlooded),
     JSON.stringify(Array.isArray(log.contextTags) ? log.contextTags : []),
     String(log.notes || ''),
+    String(log.childId || 'child1'),
+    String(log.childName || 'Liam'),
   ];
   upsertRowById_(sheet, log.id, row);
 }
@@ -258,6 +273,7 @@ function saveScript_(script) {
     String(script.scriptStandard || ''),
     String(script.bodyAction || ''),
     String(avoidTip),
+    String(script.childId || 'all'),
   ];
   upsertRowById_(sheet, script.id, row);
 }

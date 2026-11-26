@@ -13,10 +13,19 @@ export default function QuickLogSheet({
   initialData,
   allStrategies,
   profile,
+  childrenList = [],
+  activeChild = null,
   activeParentName,
   onSave,
   onClose,
 }) {
+  const kids =
+    childrenList.length > 0
+      ? childrenList
+      : [{ id: 'child1', name: profile.childName || 'Liam', age: String(profile.childAge || '4') }];
+  const defaultChildId = initialData?.childId || activeChild?.id || kids[0].id;
+
+  const [childId, setChildId] = useState(defaultChildId);
   const [triggerId, setTriggerId] = useState(initialData?.triggerId || 'boundaries');
   const [strategyId, setStrategyId] = useState(
     initialData?.strategyId || 'custom-other'
@@ -36,6 +45,8 @@ export default function QuickLogSheet({
   const [contextTags, setContextTags] = useState(initialData?.contextTags || []);
   const [notes, setNotes] = useState(initialData?.notes || '');
 
+  const selectedChild = kids.find((k) => k.id === childId) || kids[0];
+
   const toggleTag = (tag) => {
     setContextTags((prev) =>
       prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
@@ -54,6 +65,8 @@ export default function QuickLogSheet({
       id: crypto.randomUUID(),
       createdAt: new Date().toISOString(),
       parentName,
+      childId: selectedChild.id,
+      childName: selectedChild.name,
       triggerId,
       strategyId: strategyId === 'custom-other' ? `other-${Date.now()}` : strategyId,
       strategyTitle: title,
@@ -205,7 +218,25 @@ export default function QuickLogSheet({
           </div>
         </div>
 
-        {/* Parent & Notes */}
+        {/* Child & Parent */}
+        {kids.length > 1 && (
+          <div className="field-group">
+            <span className="field-label">For</span>
+            <div className="chip-wrap">
+              {kids.map((kid) => (
+                <button
+                  key={kid.id}
+                  type="button"
+                  className={`filter-chip ${childId === kid.id ? 'active' : ''}`}
+                  onClick={() => setChildId(kid.id)}
+                >
+                  {kid.name}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
         <div className="field-group">
           <span className="field-label">Logged by</span>
           <div className="chip-wrap">
@@ -227,7 +258,7 @@ export default function QuickLogSheet({
           <textarea
             id="log-notes-input"
             className="text-area"
-            placeholder={`What specifically helped or set ${profile.childName || 'him'} off?`}
+            placeholder={`What specifically helped or set ${selectedChild.name || 'him'} off?`}
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
           />

@@ -45,7 +45,9 @@ export default function FamilyView({
   const [parent1Name, setParent1Name] = useState(profile.parent1Name || 'Mom');
   const [parent2Name, setParent2Name] = useState(profile.parent2Name || 'Dad');
   const [childName, setChildName] = useState(profile.childName || 'Liam');
-  const [childAge, setChildAge] = useState(String(profile.childAge || 4));
+  const [childAge, setChildAge] = useState(String(profile.childAge || '4'));
+  const [child2Name, setChild2Name] = useState(profile.child2Name ?? 'Arlo');
+  const [child2Age, setChild2Age] = useState(String(profile.child2Age ?? '1y 3m'));
   const [familyCode, setFamilyCode] = useState(profile.familyCode || 'our-family');
   const [parent1Pin, setParent1Pin] = useState(profile.parent1Pin || '0527');
   const [parent2Pin, setParent2Pin] = useState(profile.parent2Pin || profile.pin || '0901');
@@ -77,7 +79,9 @@ export default function FamilyView({
       parent1Name: parent1Name.trim() || 'Mom',
       parent2Name: parent2Name.trim() || 'Dad',
       childName: childName.trim() || 'Liam',
-      childAge: Math.max(1, Math.min(18, Number(childAge) || 4)),
+      childAge: childAge.trim() || '4',
+      child2Name: child2Name.trim(),
+      child2Age: child2Age.trim() || '1y 3m',
     });
   };
 
@@ -174,7 +178,7 @@ export default function FamilyView({
 
         <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 10 }}>
           <label className="field-group">
-            <span className="field-label">Child’s name (used in scripts)</span>
+            <span className="field-label">Child 1 (active by default)</span>
             <input
               id="settings-child-name"
               type="text"
@@ -187,12 +191,35 @@ export default function FamilyView({
           <label className="field-group">
             <span className="field-label">Age</span>
             <input
-              type="number"
-              min="1"
-              max="12"
+              type="text"
               className="text-input"
               value={childAge}
               onChange={(e) => setChildAge(e.target.value)}
+              placeholder="4"
+            />
+          </label>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 10 }}>
+          <label className="field-group">
+            <span className="field-label">Child 2 (ready when needed)</span>
+            <input
+              id="settings-child2-name"
+              type="text"
+              className="text-input"
+              value={child2Name}
+              onChange={(e) => setChild2Name(e.target.value)}
+              placeholder="Arlo"
+            />
+          </label>
+          <label className="field-group">
+            <span className="field-label">Age</span>
+            <input
+              type="text"
+              className="text-input"
+              value={child2Age}
+              onChange={(e) => setChild2Age(e.target.value)}
+              placeholder="1y 3m"
             />
           </label>
         </div>

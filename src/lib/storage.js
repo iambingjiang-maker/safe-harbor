@@ -12,8 +12,29 @@ export const DEFAULT_PROFILE = {
   parent1Name: 'Mom',
   parent2Name: 'Dad',
   childName: 'Liam',
-  childAge: 4,
+  childAge: '4',
+  child2Name: 'Arlo',
+  child2Age: '1y 3m',
 };
+
+export function getChildrenList(profile) {
+  const p = profile || DEFAULT_PROFILE;
+  const list = [
+    {
+      id: 'child1',
+      name: (p.childName || 'Liam').trim(),
+      age: String(p.childAge || '4').trim(),
+    },
+  ];
+  if ((p.child2Name || '').trim()) {
+    list.push({
+      id: 'child2',
+      name: p.child2Name.trim(),
+      age: String(p.child2Age || '1y 3m').trim(),
+    });
+  }
+  return list;
+}
 
 export function getActiveCloudProvider() {
   if (getActiveSheetsConfig().source) return 'sheets';
@@ -45,6 +66,15 @@ export function loadLocalState() {
         ...DEFAULT_PROFILE,
         ...savedProfile,
         childName: migratedChildName,
+        childAge: String(savedProfile.childAge ?? DEFAULT_PROFILE.childAge),
+        child2Name:
+          savedProfile.child2Name !== undefined
+            ? savedProfile.child2Name
+            : DEFAULT_PROFILE.child2Name,
+        child2Age:
+          savedProfile.child2Age !== undefined
+            ? String(savedProfile.child2Age)
+            : DEFAULT_PROFILE.child2Age,
         parent1Pin: savedProfile.parent1Pin || DEFAULT_PROFILE.parent1Pin,
         parent2Pin: migratedP2Pin,
         pin: migratedP2Pin,
@@ -77,12 +107,14 @@ export function loadDevicePrefs() {
     if (!raw) {
       return {
         activeParentSlot: 'parent1',
+        activeChildId: 'child1',
         trustedDevice: false,
         pinDismissedBanner: false,
       };
     }
     return {
       activeParentSlot: 'parent1',
+      activeChildId: 'child1',
       trustedDevice: false,
       pinDismissedBanner: false,
       ...JSON.parse(raw),
@@ -90,6 +122,7 @@ export function loadDevicePrefs() {
   } catch {
     return {
       activeParentSlot: 'parent1',
+      activeChildId: 'child1',
       trustedDevice: false,
       pinDismissedBanner: false,
     };

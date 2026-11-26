@@ -12,17 +12,35 @@ import { computeOverallInsights, formatRelativeTime } from '../lib/insights';
 
 export default function InsightsView({
   profile,
+  childrenList = [],
+  activeChild = null,
   logs,
   onOpenLogSheet,
   onDeleteLog,
   onLoadSampleData,
 }) {
+  const kids =
+    childrenList.length > 0
+      ? childrenList
+      : [{ id: 'child1', name: profile.childName || 'Liam', age: String(profile.childAge || '4') }];
+  const [childScope, setChildScope] = useState(activeChild?.id || 'child1'); // 'child1' | 'child2' | 'all'
   const [filter, setFilter] = useState('all'); // 'all' | 'helped' | 'escalated' | 'tired' | parent1 | parent2
 
-  const insights = useMemo(() => computeOverallInsights(logs), [logs]);
+  const scopedLogs = useMemo(() => {
+    if (childScope === 'all') return logs;
+    return logs.filter((l) => (l.childId || 'child1') === childScope);
+  }, [logs, childScope]);
+
+  const activeScopeChild = kids.find((k) => k.id === childScope);
+  const scopeLabel =
+    childScope === 'all'
+      ? kids.map((k) => k.name).join(' & ')
+      : activeScopeChild?.name || profile.childName || 'Liam';
+
+  const insights = useMemo(() => computeOverallInsights(scopedLogs), [scopedLogs]);
 
   const filteredLogs = useMemo(() => {
-    const sorted = [...logs].sort(
+    const sorted = [...scopedLogs].sort(
       (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
     );
     return sorted.filter((l) => {
@@ -34,7 +52,7 @@ export default function InsightsView({
       if (filter === 'parent2') return l.parentName === (profile.parent2Name || 'Dad');
       return true;
     });
-  }, [logs, filter, profile.parent1Name, profile.parent2Name]);
+  }, [scopedLogs, filter, profile.parent1Name, profile.parent2Name]);
 
   return (
     <>
@@ -42,7 +60,7 @@ export default function InsightsView({
         <div className="page-intro">
           <h1 className="page-title">Log & Insights</h1>
           <p className="page-subtitle">
-            What actually works for {profile.childName || 'Liam'} across both parents.
+            What actually works for {scopeLabel} across both parents.
           </p>
         </div>
         <button
@@ -50,38 +68,78 @@ export default function InsightsView({
           id="insights-log-btn"
           className="btn-secondary"
           style={{ minHeight: 38, padding: '0 12px', flexShrink: 0 }}
-          onClick={() => onOpenLogSheet({ triggerId: 'boundaries', outcome: 'helped' })}
+          onClick={() =>
+            onOpenLogSheet({
+              triggerId: 'boundaries',
+              outcome: 'helped',
+              childId: childScope === 'all' ? activeChild?.id || 'child1' : childScope,
+            })
+          }
         >
           <PlusCircle size={16} />
           Log
         </button>
       </div>
 
-      {logs.length === 0 ? (
+      {kids.length > 1 && (
+        <div className="chip-wrap" role="group" aria-label="Filter insights by child">
+          {kids.map((kid) => (
+            <button
+              key={kid.id}
+              type="button"
+              className={`filter-chip ${childScope === kid.id ? 'active' : ''}`}
+              onClick={() => setChildScope(kid.id)}
+            >
+              {kid.name} ({kid.age})
+            </button>
+          ))}
+          <button
+            type="button"
+            className={`filter-chip ${childScope === 'all' ? 'active' : ''}`}
+            onClick={() => setChildScope('all')}
+          >
+            Both boys
+          </button>
+        </div>
+      )}
+
+      {scopedLogs.length === 0 ? (
         <div className="empty-state">
           <Sparkles size={26} color="var(--sage-600)" />
-          <div className="empty-title">Your shared pattern log starts here</div>
+          <div className="empty-title">
+            {logs.length === 0
+              ? 'Your shared pattern log starts here'
+              : `No moments logged for ${scopeLabel} yet`}
+          </div>
           <p className="empty-sub">
             After a tough moment, tap <strong>Helped</strong>, <strong>Somewhat</strong>, or{' '}
             <strong>Escalated</strong> on any strategy. Over just a few days, Sturdy learns what calms{' '}
-            {profile.childName || 'Liam'} fastest—especially when he’s tired or testing boundaries.
+            {scopeLabel} fastest—especially when he’s tired or testing boundaries.
           </p>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'center', marginTop: 6 }}>
             <button
               type="button"
               className="btn-primary"
-              onClick={() => onOpenLogSheet({ triggerId: 'boundaries', outcome: 'helped' })}
+              onClick={() =>
+                onOpenLogSheet({
+                  triggerId: 'boundaries',
+                  outcome: 'helped',
+                  childId: childScope === 'all' ? activeChild?.id || 'child1' : childScope,
+                })
+              }
             >
-              Log your first moment
+              Log a moment for {childScope === 'all' ? kids[0].name : scopeLabel}
             </button>
-            <button
-              type="button"
-              id="load-sample-logs-btn"
-              className="btn-secondary"
-              onClick={onLoadSampleData}
-            >
-              Preview with 6 sample moments
-            </button>
+            {logs.length === 0 && (
+              <button
+                type="button"
+                id="load-sample-logs-btn"
+                className="btn-secondary"
+                onClick={onLoadSampleData}
+              >
+                Preview with 6 sample moments
+              </button>
+            )}
           </div>
         </div>
       ) : (
@@ -137,7 +195,7 @@ export default function InsightsView({
             <section className="surface-card">
               <div className="section-header">
                 <span className="section-label">
-                  What Works Best for {profile.childName || 'Liam'}
+                  What Works Best for {scopeLabel}
                 </span>
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
