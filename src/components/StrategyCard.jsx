@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   CheckCircle2,
   ChevronDown,
@@ -21,10 +21,12 @@ export default function StrategyCard({
   onQuickLog,
   onDeleteCustom = null,
 }) {
-  const [lowWordsMode, setLowWordsMode] = useState(
-    Boolean(defaultLowWords || strategy.lowWords)
-  );
+  const [lowWordsMode, setLowWordsMode] = useState(Boolean(defaultLowWords));
   const [detailsOpen, setDetailsOpen] = useState(false);
+
+  useEffect(() => {
+    setLowWordsMode(Boolean(defaultLowWords));
+  }, [defaultLowWords]);
 
   const activeScript = lowWordsMode
     ? strategy.scriptFlooded || strategy.scriptStandard

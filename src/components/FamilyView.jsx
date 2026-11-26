@@ -37,7 +37,8 @@ export default function FamilyView({
   const [childName, setChildName] = useState(profile.childName || 'Buddy');
   const [childAge, setChildAge] = useState(String(profile.childAge || 4));
   const [familyCode, setFamilyCode] = useState(profile.familyCode || 'our-family');
-  const [pin, setPin] = useState(profile.pin || '1234');
+  const [parent1Pin, setParent1Pin] = useState(profile.parent1Pin || '0527');
+  const [parent2Pin, setParent2Pin] = useState(profile.parent2Pin || profile.pin || '1234');
 
   const envCfg = getEnvSupabaseConfig();
   const activeCfg = getActiveSupabaseConfig();
@@ -47,14 +48,17 @@ export default function FamilyView({
 
   const handleProfileSubmit = (e) => {
     e.preventDefault();
-    const cleanPin = pin.replace(/\D/g, '').slice(0, 4);
-    if (cleanPin.length !== 4) {
-      alert('Please enter a 4-digit PIN.');
+    const cleanPin1 = parent1Pin.replace(/\D/g, '').slice(0, 4);
+    const cleanPin2 = parent2Pin.replace(/\D/g, '').slice(0, 4);
+    if (cleanPin1.length !== 4 || cleanPin2.length !== 4) {
+      alert('Please enter a 4-digit PIN for each parent.');
       return;
     }
     onSaveProfile({
       familyCode: (familyCode || 'our-family').trim().toLowerCase().replace(/\s+/g, '-'),
-      pin: cleanPin,
+      pin: cleanPin2,
+      parent1Pin: cleanPin1,
+      parent2Pin: cleanPin2,
       parent1Name: parent1Name.trim() || 'Mom',
       parent2Name: parent2Name.trim() || 'Dad',
       childName: childName.trim() || 'Buddy',
@@ -168,39 +172,52 @@ export default function FamilyView({
           </label>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: 10 }}>
-          <label className="field-group">
-            <span className="field-label">Shared Family Code</span>
-            <div style={{ display: 'flex', gap: 6 }}>
-              <input
-                type="text"
-                className="text-input"
-                value={familyCode}
-                onChange={(e) => setFamilyCode(e.target.value)}
-                placeholder="smith-family"
-              />
-              <button
-                type="button"
-                className="icon-btn"
-                onClick={handleCopyFamilyCode}
-                title="Copy family code"
-                style={{ width: 44, height: 44, borderRadius: 'var(--radius-sm)' }}
-              >
-                {copiedCode ? <Check size={16} /> : <Copy size={16} />}
-              </button>
-            </div>
-          </label>
-
-          <label className="field-group">
-            <span className="field-label">4-Digit PIN</span>
+        <label className="field-group">
+          <span className="field-label">Shared Family Code</span>
+          <div style={{ display: 'flex', gap: 6 }}>
             <input
-              id="settings-pin"
+              type="text"
+              className="text-input"
+              value={familyCode}
+              onChange={(e) => setFamilyCode(e.target.value)}
+              placeholder="smith-family"
+            />
+            <button
+              type="button"
+              className="icon-btn"
+              onClick={handleCopyFamilyCode}
+              title="Copy family code"
+              style={{ width: 44, height: 44, borderRadius: 'var(--radius-sm)' }}
+            >
+              {copiedCode ? <Check size={16} /> : <Copy size={16} />}
+            </button>
+          </div>
+        </label>
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+          <label className="field-group">
+            <span className="field-label">{parent1Name || 'Mom'}’s 4-Digit PIN</span>
+            <input
+              id="settings-pin-parent1"
               type="password"
               inputMode="numeric"
               maxLength={4}
               className="text-input"
-              value={pin}
-              onChange={(e) => setPin(e.target.value.replace(/\D/g, '').slice(0, 4))}
+              value={parent1Pin}
+              onChange={(e) => setParent1Pin(e.target.value.replace(/\D/g, '').slice(0, 4))}
+              placeholder="0527"
+            />
+          </label>
+          <label className="field-group">
+            <span className="field-label">{parent2Name || 'Dad'}’s 4-Digit PIN</span>
+            <input
+              id="settings-pin-parent2"
+              type="password"
+              inputMode="numeric"
+              maxLength={4}
+              className="text-input"
+              value={parent2Pin}
+              onChange={(e) => setParent2Pin(e.target.value.replace(/\D/g, '').slice(0, 4))}
               placeholder="1234"
             />
           </label>

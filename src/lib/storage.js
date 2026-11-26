@@ -6,6 +6,8 @@ const DEVICE_PREFS_KEY = 'sturdy_device_prefs_v1';
 export const DEFAULT_PROFILE = {
   familyCode: 'our-family',
   pin: '1234',
+  parent1Pin: '0527',
+  parent2Pin: '1234',
   parent1Name: 'Mom',
   parent2Name: 'Dad',
   childName: 'Buddy',
@@ -24,8 +26,14 @@ export function loadLocalState() {
       };
     }
     const parsed = JSON.parse(raw);
+    const savedProfile = parsed.profile || {};
     return {
-      profile: { ...DEFAULT_PROFILE, ...(parsed.profile || {}) },
+      profile: {
+        ...DEFAULT_PROFILE,
+        ...savedProfile,
+        parent1Pin: savedProfile.parent1Pin || DEFAULT_PROFILE.parent1Pin,
+        parent2Pin: savedProfile.parent2Pin || savedProfile.pin || DEFAULT_PROFILE.parent2Pin,
+      },
       logs: Array.isArray(parsed.logs) ? parsed.logs : [],
       customScripts: Array.isArray(parsed.customScripts) ? parsed.customScripts : [],
       favorites: Array.isArray(parsed.favorites) ? parsed.favorites : [],
@@ -171,7 +179,9 @@ export async function pullFamilyFromCloud(familyCode, fallbackProfile) {
   if (!familyRow) {
     const insertPayload = {
       family_code: code,
-      pin: fallbackProfile.pin || '1234',
+      pin: fallbackProfile.parent2Pin || fallbackProfile.pin || '1234',
+      parent1_pin: fallbackProfile.parent1Pin || '0527',
+      parent2_pin: fallbackProfile.parent2Pin || fallbackProfile.pin || '1234',
       parent1_name: fallbackProfile.parent1Name || 'Mom',
       parent2_name: fallbackProfile.parent2Name || 'Dad',
       child_name: fallbackProfile.childName || 'Buddy',
@@ -212,7 +222,9 @@ export async function pullFamilyFromCloud(familyCode, fallbackProfile) {
     connected: true,
     profile: {
       familyCode: familyRow.family_code,
-      pin: familyRow.pin,
+      pin: familyRow.pin || familyRow.parent2_pin || '1234',
+      parent1Pin: familyRow.parent1_pin || fallbackProfile.parent1Pin || '0527',
+      parent2Pin: familyRow.parent2_pin || familyRow.pin || fallbackProfile.parent2Pin || '1234',
       parent1Name: familyRow.parent1_name,
       parent2Name: familyRow.parent2_name,
       childName: familyRow.child_name,
@@ -230,7 +242,9 @@ export async function pushProfileToCloud(profile) {
   const code = (profile.familyCode || 'our-family').trim().toLowerCase();
   const { error } = await supabase.from('families').upsert({
     family_code: code,
-    pin: profile.pin,
+    pin: profile.parent2Pin || profile.pin || '1234',
+    parent1_pin: profile.parent1Pin || '0527',
+    parent2_pin: profile.parent2Pin || profile.pin || '1234',
     parent1_name: profile.parent1Name,
     parent2_name: profile.parent2Name,
     child_name: profile.childName,

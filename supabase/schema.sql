@@ -5,6 +5,8 @@
 create table if not exists public.families (
   family_code text primary key,
   pin text not null default '1234',
+  parent1_pin text not null default '0527',
+  parent2_pin text not null default '1234',
   parent1_name text not null default 'Mom',
   parent2_name text not null default 'Dad',
   child_name text not null default 'Buddy',

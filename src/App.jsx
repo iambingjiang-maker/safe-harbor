@@ -101,7 +101,7 @@ export default function App() {
         setSyncError(err?.message || 'Could not reach Supabase');
       }
     },
-    [profile.familyCode, profile.pin, profile.parent1Name, profile.parent2Name, profile.childName, profile.childAge, showToast]
+    [profile.familyCode, profile.pin, profile.parent1Pin, profile.parent2Pin, profile.parent1Name, profile.parent2Name, profile.childName, profile.childAge, showToast]
   );
 
   // Initial pull & realtime subscription

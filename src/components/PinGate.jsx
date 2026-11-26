@@ -11,8 +11,21 @@ export default function PinGate({
   const [error, setError] = useState(false);
   const [rememberDevice, setRememberDevice] = useState(true);
 
-  const expectedPin = profile.pin || '1234';
-  const isDefaultPin = expectedPin === '1234';
+  const activeParentName =
+    activeParentSlot === 'parent2'
+      ? profile.parent2Name || 'Dad'
+      : profile.parent1Name || 'Mom';
+  const expectedPin =
+    activeParentSlot === 'parent2'
+      ? profile.parent2Pin || profile.pin || '1234'
+      : profile.parent1Pin || '0527';
+  const showDefaultHint = activeParentSlot === 'parent2' && expectedPin === '1234';
+
+  const handleSelectSlot = (slot) => {
+    setDigits('');
+    setError(false);
+    onSelectParentSlot(slot);
+  };
 
   const handleDigit = (d) => {
     if (digits.length >= 4) return;
@@ -57,7 +70,7 @@ export default function PinGate({
                 type="button"
                 id="pin-parent-1"
                 className={`parent-pick-btn ${activeParentSlot === 'parent1' ? 'active' : ''}`}
-                onClick={() => onSelectParentSlot('parent1')}
+                onClick={() => handleSelectSlot('parent1')}
               >
                 {profile.parent1Name || 'Mom'}
               </button>
@@ -65,7 +78,7 @@ export default function PinGate({
                 type="button"
                 id="pin-parent-2"
                 className={`parent-pick-btn ${activeParentSlot === 'parent2' ? 'active' : ''}`}
-                onClick={() => onSelectParentSlot('parent2')}
+                onClick={() => handleSelectSlot('parent2')}
               >
                 {profile.parent2Name || 'Dad'}
               </button>
@@ -76,7 +89,7 @@ export default function PinGate({
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14 }}>
           <div style={{ textAlign: 'center' }}>
             <div className="field-label" style={{ marginBottom: 6 }}>
-              Enter your 4-digit family PIN
+              Enter {activeParentName}’s 4-digit PIN
             </div>
             <div className="pin-dots" aria-label={`Entered ${digits.length} of 4 digits`}>
               {[0, 1, 2, 3].map((idx) => (
@@ -90,7 +103,7 @@ export default function PinGate({
               <p style={{ fontSize: '0.8rem', color: 'var(--terra-600)', marginTop: 4 }}>
                 Incorrect PIN — try again
               </p>
-            ) : isDefaultPin ? (
+            ) : showDefaultHint ? (
               <p style={{ fontSize: '0.78rem', color: 'var(--ink-muted)', marginTop: 4 }}>
                 Default PIN is <strong>1234</strong> (change anytime in Family Settings)
               </p>
