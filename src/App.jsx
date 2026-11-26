@@ -176,14 +176,6 @@ export default function App() {
     setDevicePrefs((prev) => ({ ...prev, trustedDevice: false }));
   };
 
-  const handleSwitchParent = () => {
-    const nextSlot = devicePrefs.activeParentSlot === 'parent1' ? 'parent2' : 'parent1';
-    const nextName =
-      nextSlot === 'parent2' ? profile.parent2Name || 'Dad' : profile.parent1Name || 'Mom';
-    setDevicePrefs((prev) => ({ ...prev, activeParentSlot: nextSlot }));
-    showToast(`Active parent: ${nextName}`);
-  };
-
   const handleSwitchChild = () => {
     if (childrenList.length < 2) return;
     const idx = childrenList.findIndex((c) => c.id === activeChild.id);
@@ -386,18 +378,17 @@ export default function App() {
           </div>
 
           <div className="header-actions">
-            <button
-              type="button"
-              id="header-parent-switcher"
+            <div
+              id="header-parent-badge"
               className="parent-switcher"
-              onClick={handleSwitchParent}
-              title="Tap to switch active parent"
+              style={{ cursor: 'default' }}
+              aria-label={`Signed in as ${activeParentName}`}
             >
               <span className="parent-avatar">
                 {(activeParentName || 'P').slice(0, 1).toUpperCase()}
               </span>
               <span>{activeParentName}</span>
-            </button>
+            </div>
           </div>
         </header>
 
