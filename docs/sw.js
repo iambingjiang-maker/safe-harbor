@@ -1,4 +1,4 @@
-const CACHE_NAME = 'sturdy-family-v8';
+const CACHE_NAME = 'sturdy-family-v9';
 const APP_SHELL = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', (event) => {
@@ -23,6 +23,28 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
 
+  const isHtmlNav =
+    request.mode === 'navigate' ||
+    url.pathname.endsWith('/') ||
+    url.pathname.endsWith('.html');
+
+  // Network-first for HTML pages so iOS Home Screen PWA always gets latest updates immediately
+  if (isHtmlNav) {
+    event.respondWith(
+      fetch(request, { cache: 'no-cache' })
+        .then((response) => {
+          if (response && response.status === 200) {
+            const copy = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(request, copy)).catch(() => {});
+          }
+          return response;
+        })
+        .catch(() => caches.match(request).then((c) => c || caches.match('./index.html')))
+    );
+    return;
+  }
+
+  // Cache-first with background refresh for hashed static assets
   event.respondWith(
     caches.match(request).then((cached) => {
       const networkFetch = fetch(request)
